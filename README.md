@@ -1,4 +1,8 @@
-# P5 EIT-512 AAU
-## repository ovner HOIMARK
-this project is the first git project from this groop 
-this is a confligt this is a confligting line that will overrulegi
+# P5 - RF based drone detection
+## P5 EIT-512 AAU
+Elektronik og IT, group 512, 12-2023 P5 - Projec a fall project.
+
+This project will be using python, and Arduino files.
+This is the groops first experiance with git 
+
+@auther HOIMARK
