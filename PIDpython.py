@@ -1,66 +1,122 @@
 import matplotlib.pyplot as plt
 
 # Constants
-target = 90
-initial_valueP = 0
-initial_valueI = 0
-initial_valueD = 0
+def separatPID():
+    print("Separat P, I ,D")
+    target = 90
+    initial_valueP = 0  
+    initial_valueI = 0
+    initial_valueD = 0
 
-K_p = 0.4  # Proportional gain (adjust as needed)
-K_i = 0.4
-K_d = 0.2
+    K_p = 0.4  # Proportional gain (adjust as needed)
+    K_i = 0.6
+    K_d = 0.2
+    K_c = 0.3
 
-time = [0]
+    time = [0]
 
-P_values = [0]
-I_values = [0]
-D_values = [0]
+    P_values = [0]
+    I_values = [0]
+    D_values = [0]
 
-lastErrorD = 0
-lastErrorI = 0
-# Simulate control loop iterations
+    lastErrorD = 0
+    lastErrorI = 0
 
-num_iterations = 500
-for t in range(1, num_iterations):
-    # Simulate error (replace with actual error calculation)
-    errorP = target - initial_valueP
-    errorI = target - initial_valueI
-    errorD = target - initial_valueD
+    # Simulate control loop iterations
+    num_iterations = 100
+    for t in range(1, num_iterations):
+        # Simulate error (replace with actual error calculation)
+        errorP = target - initial_valueP
+        errorI = target - initial_valueI
+        errorD = target - initial_valueD
 
-    P = K_p * errorP
+        print("--------------------------")
+        P = K_p * errorP
+        print(str(P) + " p")
+        I = K_c * (errorI + (K_i * lastErrorI))
+        lastErrorI = errorI
+        print(str(I) + " I")
+        D = K_c * (errorD - (K_d * lastErrorD))
+        lastErrorD = errorD
+        print(str(D) + " D")
+        initial_valueP += P 
+        initial_valueI += I
+        initial_valueD += D
+        
+        # Append values to lists
+        time.append(t) #t
+        P_values.append(initial_valueP)
+        D_values.append(initial_valueD)
+        I_values.append(initial_valueI)
 
-    I = K_i * (errorI + lastErrorI)
-    lastErrorI = errorI
+    # Create plots for P(t), I(t), and D(t) components
+    plt.figure(figsize=(12, 6))
+    plt.plot(time, P_values, label="P(t)", color='blue')
+    plt.plot(time, I_values, label="I(t)", color='green')
+    plt.plot(time, D_values, label="D(t)", color='red')
+    plt.xlabel("Time")
+    plt.ylabel("Value")
+    plt.legend()
+    plt.title("P(t), I(t), D(t) ")
+    # Set the y-axis limits to 0-120 and x-axis limits to 0-50 (adjust as needed)
+    plt.ylim(0, 120)
+    plt.xlim(0, 50)
+    # Show the plot
+    plt.grid(True)
 
-    D = errorD - lastErrorD
-    lastErrorD = K_d * errorD
+def totalPID():
+    print("Separat P, I ,D")
+    target = 90
+    initial_value = 0  
 
-    initial_valueP += P 
-    initial_valueI += I
-    initial_valueD += D
+    K_p = 0.4  # Proportional gain (adjust as needed)
+    K_i = 0.6
+    K_d = 0.2
+    K_c = 0.3
 
-    # Append values to lists
-    time.append(t) #t
-    P_values.append(initial_valueP)
-    D_values.append(initial_valueD)
-    I_values.append(initial_valueI)
+    time = [0]
 
-# Create plots for P(t), I(t), and D(t) components
-plt.figure(figsize=(12, 6))
-plt.plot(time, P_values, label="P(t)", color='blue')
-plt.plot(time, I_values, label="I(t)", color='green')
-plt.plot(time, D_values, label="D(t)", color='red')
-# Set labels and title
-plt.xlabel("Time")
-plt.ylabel("Value")
-plt.legend()
-plt.title("P(t), Components Over Time")
+    values = [0]
 
-# plt.ylim(0, 100)  # Set the y-axis limits to 0-100
-# plt.xlim(0, num_iterations)  # Set the x-axis limits to the full range
-plt.ylim(0, 120)  # Set the y-axis limits to 0-50
-plt.xlim(0, 50)  # Set the x-axis limits to 0-20
+    lastError = 0
 
-# Show the plot
-plt.grid(True)
+    # Simulate control loop iterations
+    num_iterations = 100
+    for t in range(1, num_iterations):
+        # Simulate error (replace with actual error calculation)
+        error = target - initial_value
+
+        print("--------------------------")
+        P = K_p * error
+        print(str(P) + " p")
+        I = K_c * (error + (K_i * lastError))
+        print(str(I) + " I")
+        D = K_c * (error - (K_d * lastError))
+        lastError = error
+        print(str(D) + " D")
+        initial_value += (P + I + D)
+        print(str(initial_value) + "PID")
+
+        # Append values to lists
+        time.append(t) #t
+        values.append(initial_value)
+
+    # Create plots for P(t), I(t), and D(t) components
+    plt.figure(figsize=(12, 6))
+    plt.plot(time, values, label="PID(t)", color='blue')
+    # Set labels and title
+    plt.xlabel("Time")
+    plt.ylabel("Value")
+    plt.legend()
+    plt.title("PID(t) ")
+    # Set the y-axis limits to 0-120 and x-axis limits to 0-50 (adjust as needed)
+    plt.ylim(0, 120)
+    plt.xlim(0, 50)
+    # Show the plot
+    plt.grid(True)
+   
+# Call the function to simulate and plot the components
+separatPID()
+totalPID()
+
 plt.show()
