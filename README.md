@@ -9,5 +9,3 @@ This is the groops first experiance with git
 The arduino code is running in the vscode ekstention PlatformIO 
 i recoment you are using the same. 
 this was written by caspeer d 05102023
-
-MMogensen was here!
