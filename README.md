@@ -8,5 +8,4 @@ This is the groups first experience with git.
 The arduino code is running in the vscode ekstention PlatformIO.
 I recommend you are using the same. 
 
-
-popopepepopo
+asbjørn was here
