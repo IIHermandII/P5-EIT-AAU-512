@@ -1,4 +1,11 @@
 import matplotlib.pyplot as plt
+# Global variables:
+K_p = 0.4  # Proportional gain (adjust as needed)
+K_i = 0.6
+K_d = 0.2
+K_c = 1
+
+
 
 # Constants
 def separatPID():
@@ -8,10 +15,6 @@ def separatPID():
     initial_valueI = 0
     initial_valueD = 0
 
-    K_p = 0.4  # Proportional gain (adjust as needed)
-    K_i = 0.6
-    K_d = 0.2
-    K_c = 0.3
 
     time = [0]
 
@@ -68,11 +71,6 @@ def totalPID():
     print("Separat P, I ,D")
     target = 90
     initial_value = 0  
-
-    K_p = 0.4  # Proportional gain (adjust as needed)
-    K_i = 0.6
-    K_d = 0.2
-    K_c = 0.3
 
     time = [0]
 

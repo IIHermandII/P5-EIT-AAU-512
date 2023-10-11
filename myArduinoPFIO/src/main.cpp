@@ -1,8 +1,8 @@
 #include <Arduino.h>
 
 const int analogPin = A3; // potentiometer wiper (middle terminal) connected to analog pin 3
-const int overShootPin = 11;
-const int underShootPin = 9;
+const int Black = 11;
+const int Red = 9;
 int time_t = 0;
 bool state = false; //true starte = overshoot | false state = undershoot
 int lastSystemError = 1;
@@ -71,20 +71,20 @@ void systemOutPID(int P, int I, int D){
   if (PID <= -255) PID = -255; 
 
   if (PID >=0 ) {
-    analogWrite(overShootPin, PID);
-    pinMode(underShootPin, LOW);
+    analogWrite(Black, PID);
+    pinMode(Red, LOW);
     }
   if (PID < 0 ) {
-    analogWrite(underShootPin, PID);
-    pinMode(overShootPin, LOW);
+    analogWrite(Red, PID);
+    pinMode(Black, LOW);
     } 
   }
 
   
 void setup() {
   Serial.begin(9600);
-  pinMode(overShootPin, OUTPUT); 
-  pinMode(underShootPin, OUTPUT); 
+  pinMode(Black, OUTPUT); 
+  pinMode(Red, OUTPUT); 
 }
 
 
