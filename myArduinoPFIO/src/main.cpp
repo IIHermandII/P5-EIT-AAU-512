@@ -13,6 +13,7 @@ float integral = 0;
 int encoder_count = 0;
 int encoder_threshold = 1000;
 bool encoder_state_change = 0;
+int counts_per_rotation = 100;
 
 
 // Define pins
@@ -29,8 +30,8 @@ int i, j = 0;
 
 // Interupt function
 void encoder_counter (){
-  encoder_count += 1;
-  Serial.print("count: ");
+  encoder_count ++;
+  // Serial.print("count: ");
   Serial.println(encoder_count);
   // Serial.print("Read: ");
   // Serial.println(analogRead(analogPin));
@@ -58,7 +59,7 @@ void pwm(int pin, int duty){
 
 float readSensor() {
   float input;
-
+  float position;
   input = analogRead(encoderPin); //
   // Serial.print("Hall sensor input value ----> ");
   Serial.println(input);
@@ -77,7 +78,8 @@ float readSensor() {
   // Serial.println(encoder_count);
   // Serial.print("Read: ");
   // Serial.println(analogRead(analogPin));
-  return input;
+  
+  return position;
 }
 
 void controlActuator(float output) {
@@ -104,28 +106,21 @@ void setup() {
   Serial.begin(9600);
   pinMode(encoderPin, INPUT);
 
-  // Changing the PWM frequency on output pin:
-  //TIMER1 setup
-  TCCR1A=TCCR1B=0;
-  //set waveform generator mode WGM1 3..0: 1110 (mode 14; FAST PWM) clear OC1A on compare match
-  //set prescaler CS12..0: 100 (clkio/256)
-  TCCR1A = (1 << COM1A1) | (1 << WGM11); 
-  TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS12);
-  //set top and compare register
-  ICR1 = 3124; //TOP for 20 Hz, 256 prescaler
-  OCR1A = 1000; //default PWM compare
-  
-  //on Mega2560, OC1A function is tied to pin 11 (9 on ATmega328)
-  pinMode( Red, OUTPUT );
-  pinMode( Black, OUTPUT );
-
 }
 
 
 
 void loop() {
-readSensor();  
-pwm(Red, 30);
+readSensor(); 
+Serial.print("1111111");
+if (encoder_count<100){
+  pwm(Red, 10);
+}
+else{
+  pwm(Red, 0);
+}
+
+
 
 // if (i == 30000){
 //   i = 0;
