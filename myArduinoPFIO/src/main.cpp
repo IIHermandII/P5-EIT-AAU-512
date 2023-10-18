@@ -13,12 +13,11 @@ float integral = 0;
 int encoder_count = 0;
 int encoder_threshold = 1000;
 bool encoder_state_change = 0;
-int counts_per_rotation = 100;
-float position=0;
-
+int counts_per_rotation = 180;
+bool print_one = true;
 
 // Define pins
-const int encoderPin = A3;
+const int encoderPin = 2;
 const int Black = 11;
 const int Red = 9;
 
@@ -27,11 +26,17 @@ const int pwm_period = 50; // 20 kHz PWM period in microseconds
 unsigned long pre_micros = 0;
 int pwmValue = 0;
 int i, j = 0;
+bool clock_wise;
 
 
 // Interupt function
 void encoder_counter (){
-  encoder_count ++;
+  if (clock_wise){
+    encoder_count ++;
+  }
+  else{
+    encoder_count --;
+  }
   // Serial.print("count: ");
   // Serial.println(encoder_count);
   // Serial.print("Read: ");
@@ -58,13 +63,13 @@ void pwm(int pin, int duty){
 }
 
 float readSensor() {
-  float input;
-  input = analogRead(encoderPin); //
+  float encoder_read;
+  encoder_read = analogRead(encoderPin); //
   // Serial.print("Encoder sensor input value ----> ");
-  // Serial.println(input);
-  if (input<encoder_threshold){
+  // Serial.println(encoder_read);
+  if (encoder_read<encoder_threshold){
     if (encoder_state_change){
-      encoder_counter ();
+      // encoder_counter ();
       encoder_state_change = 0;
     }
   }
@@ -77,8 +82,9 @@ float readSensor() {
   // Serial.println(encoder_count);
   // Serial.print("Read: ");
   // Serial.println(analogRead(analogPin));
-  
-  return position;
+  float angle = map((encoder_count%counts_per_rotation), 0, counts_per_rotation-1, 0, 360);
+  // Serial.println(angle);
+  return angle;
 }
 
 void controlActuator(float output) {
@@ -90,10 +96,12 @@ void controlActuator(float output) {
   if (PID <= -max_pwm) PID = -max_pwm; 
 
   if (PID >=0 ) {
+    clock_wise=true;
     pwm(Black, PID);
     pinMode(Red, LOW);
     }
   else {
+    clock_wise=false;
     pwm(Red, -PID);
     pinMode(Black, LOW);
     } 
@@ -104,6 +112,7 @@ void setup() {
   // Set up serial communication for debugging
   Serial.begin(9600);
   pinMode(encoderPin, INPUT);
+  attachInterrupt(digitalPinToInterrupt(encoderPin), encoder_counter, CHANGE);
 
   pinMode(Red, OUTPUT);
   pinMode(Black, OUTPUT);
@@ -114,12 +123,17 @@ void setup() {
 
 void loop() {
 readSensor(); 
-if (encoder_count<1000){
+
+// Serial.println(encoder_count);
+if (encoder_count<3000){
   pwm(Red, 10);
 }
 else{
-  pwm(Red, 0);
-  Serial.println(encoder_count);
+  if(print_one){
+    pwm(Red, 0);
+    Serial.println(encoder_count);
+    print_one=false;
+    }
 }
 
 // pwm(Red, 0);
