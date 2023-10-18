@@ -14,6 +14,7 @@ int encoder_count = 0;
 int encoder_threshold = 1000;
 bool encoder_state_change = 0;
 int counts_per_rotation = 100;
+float position=0;
 
 
 // Define pins
@@ -32,7 +33,7 @@ int i, j = 0;
 void encoder_counter (){
   encoder_count ++;
   // Serial.print("count: ");
-  Serial.println(encoder_count);
+  // Serial.println(encoder_count);
   // Serial.print("Read: ");
   // Serial.println(analogRead(analogPin));
 }
@@ -44,25 +45,23 @@ void pwm(int pin, int duty){
   
   if (current_micros - pre_micros >= duty){
     digitalWrite(pin, LOW);
-    // Serial.print("0");
     }
 
   // Check if it's time to update the PWM signal
-  if (current_micros - pre_micros >= pwm_period) {
+  if (current_micros - pre_micros >= pwm_period && duty != 0) {
     pre_micros = current_micros;
     digitalWrite(pin, HIGH);
-    // Serial.print("1");
-
-  
+  }
+  else{
+    digitalWrite(pin, LOW);
   }
 }
 
 float readSensor() {
   float input;
-  float position;
   input = analogRead(encoderPin); //
-  // Serial.print("Hall sensor input value ----> ");
-  Serial.println(input);
+  // Serial.print("Encoder sensor input value ----> ");
+  // Serial.println(input);
   if (input<encoder_threshold){
     if (encoder_state_change){
       encoder_counter ();
@@ -106,22 +105,24 @@ void setup() {
   Serial.begin(9600);
   pinMode(encoderPin, INPUT);
 
+  pinMode(Red, OUTPUT);
+  pinMode(Black, OUTPUT);
+  
 }
 
 
 
 void loop() {
 readSensor(); 
-Serial.print("1111111");
-if (encoder_count<100){
+if (encoder_count<1000){
   pwm(Red, 10);
 }
 else{
   pwm(Red, 0);
+  Serial.println(encoder_count);
 }
 
-
-
+// pwm(Red, 0);
 // if (i == 30000){
 //   i = 0;
 //   j ++ ;
