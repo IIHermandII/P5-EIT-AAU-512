@@ -5,7 +5,7 @@ const int Black = 11;
 const int Red = 9;
 int time_t = 0;
 bool state = false; //true starte = overshoot | false state = undershoot
-int lastSystemError = 1;
+int lastSystemError = 0.3;
 
 
 int getInput() {
@@ -67,6 +67,8 @@ int getD(int K_d, int K_c, int systemError) {
 void systemOutPID(int P, int I, int D){
   int PID;
   PID = P + I + D;
+ 
+
   if (PID >= 255) PID = 255;
   if (PID <= -255) PID = -255; 
 
@@ -74,8 +76,8 @@ void systemOutPID(int P, int I, int D){
     analogWrite(Black, PID);
     pinMode(Red, LOW);
     }
-  if (PID < 0 ) {
-    analogWrite(Red, PID);
+  else {
+    analogWrite(Red, -PID);
     pinMode(Black, LOW);
     } 
   }
@@ -89,22 +91,25 @@ void setup() {
 
 
 void loop() {
-  int inputValue;
-  int requestValue;
+  int feedback;
+  int refference;
   int systemError;
   int angleRequest = 90;
   int K_p = 0.4; // PID hvor P = K_p * e(t)
   int K_i = 0.6; // PID hvor I = K_i * intg0->t{ e(t) dt }
   int K_d = 0.2; // PID hvor D = K_d * diff{ e(t) }
   int K_c = 0.3; // P D controler parameter 
+  int p_cap = 1;
+  int i_cap = 1;
+  int d_cap = 1;
   int P;
   int I;
   int D;
 
 
-  inputValue = getInput();  // gets the value from potensiometer and returns 0..255
-  requestValue = getRequestAngle(angleRequest); // gets the angle from request and returns 0..255
-  systemError = getError(inputValue, requestValue); // gets the system error
+  feedback = getInput();  // gets the value from potensiometer and returns 0..255
+  refference = getRequestAngle(angleRequest); // gets the angle from request and returns 0..255
+  systemError = getError(feedback, refference); // gets the system error
   P = getP(K_p, systemError); // gets P in PID
   I = getI(K_i, K_c, systemError); // gets I in PID
   D = getD(K_d, K_c, systemError); // gets D in PID

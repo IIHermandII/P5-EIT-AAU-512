@@ -3,8 +3,11 @@ import matplotlib.pyplot as plt
 K_p = 0.4  # Proportional gain (adjust as needed)
 K_i = 0.6
 K_d = 0.2
-K_c = 1
-
+K_c = 0.3
+p_cap = 1
+i_cap = 1
+d_cap = 1
+pid_cap = 20
 
 
 # Constants
@@ -22,8 +25,9 @@ def separatPID():
     I_values = [0]
     D_values = [0]
 
-    lastErrorD = 0
+    lastErrorP = 0
     lastErrorI = 0
+    lastErrorD = 0
 
     # Simulate control loop iterations
     num_iterations = 100
@@ -34,6 +38,9 @@ def separatPID():
         errorD = target - initial_valueD
 
         print("--------------------------")
+        
+        if K_p * errorP < p_cap: 
+            P = K_p * errorP
         P = K_p * errorP
         print(str(P) + " p")
         I = K_c * (errorI + (K_i * lastErrorI))
@@ -68,7 +75,7 @@ def separatPID():
     plt.grid(True)
 
 def totalPID():
-    print("Separat P, I ,D")
+    print("Total PID")
     target = 90
     initial_value = 0  
 
@@ -92,7 +99,11 @@ def totalPID():
         D = K_c * (error - (K_d * lastError))
         lastError = error
         print(str(D) + " D")
-        initial_value += (P + I + D)
+        if P+I+D<pid_cap:
+            initial_value += (P + I + D)
+        else: 
+            initial_value += pid_cap
+        
         print(str(initial_value) + "PID")
 
         # Append values to lists
