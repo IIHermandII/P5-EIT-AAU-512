@@ -13,7 +13,7 @@ float integral = 0;
 int encoder_count = 0;
 int encoder_threshold = 1000;
 bool encoder_state_change = 0;
-int counts_per_rotation = 180;
+int counts_per_rotation = 178;
 bool print_one = true;
 
 // Define pins
@@ -22,7 +22,7 @@ const int Black = 11;
 const int Red = 9;
 
 // pwm global variables
-const int pwm_period = 50; // 20 kHz PWM period in microseconds
+const float pwm_period = 50; // (10kHz)20 kHz PWM period in microseconds
 unsigned long pre_micros = 0;
 int pwmValue = 0;
 int i, j = 0;
@@ -45,10 +45,10 @@ void encoder_counter (){
 
 
 
-void pwm(int pin, int duty){
+void pwm(int pin, float duty){//duty [%] from 0-100 
   unsigned long current_micros = micros();
   
-  if (current_micros - pre_micros >= duty){
+  if (current_micros - pre_micros >= ((pwm_period/100)*duty)){
     digitalWrite(pin, LOW);
     }
 
@@ -60,7 +60,10 @@ void pwm(int pin, int duty){
   else{
     digitalWrite(pin, LOW);
   }
+  // Serial.println(((pwm_period/100)*duty));
 }
+
+
 
 float readSensor() {
   float encoder_read;
@@ -89,7 +92,7 @@ float readSensor() {
 
 void controlActuator(float output) {
   int PID = output;
-  int max_pwm = 50;
+  int max_pwm = 100;
   // Serial.print("PWM: ");
   // Serial.println(output);
   if (PID >= max_pwm) PID = max_pwm;
@@ -110,7 +113,7 @@ void controlActuator(float output) {
 void setup() {
   // Initialize your hardware, e.g., temperature sensor and actuator
   // Set up serial communication for debugging
-  Serial.begin(9600);
+  Serial.begin(115200);
   pinMode(encoderPin, INPUT);
   attachInterrupt(digitalPinToInterrupt(encoderPin), encoder_counter, CHANGE);
 
@@ -125,23 +128,26 @@ void loop() {
 readSensor(); 
 
 // Serial.println(encoder_count);
-if (encoder_count<3000){
-  pwm(Red, 10);
+if (abs(encoder_count)<(40*counts_per_rotation)){
+  analogWrite(Red,150);
 }
 else{
   if(print_one){
-    pwm(Red, 0);
+    analogWrite(Red,0);
     Serial.println(encoder_count);
     print_one=false;
     }
 }
 
-// pwm(Red, 0);
-// if (i == 30000){
+// pwm(Red, 80);
+// analogWrite(Red,50);
+
+// if (i == 10000){
 //   i = 0;
 //   j ++ ;
 //   Serial.println(j);
-//   if (j == 50){
+//   if (j > 255){
+//     Serial.println("Speed reset!");
 //     j = 0;
     
 //   }
