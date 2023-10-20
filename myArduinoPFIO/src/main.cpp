@@ -37,10 +37,6 @@ void encoder_counter (){
   else{
     encoder_count --;
   }
-  // Serial.print("count: ");
-  // Serial.println(encoder_count);
-  // Serial.print("Read: ");
-  // Serial.println(analogRead(analogPin));
 }
 
 
@@ -51,8 +47,6 @@ void pwm(int pin, float duty){//duty [%] from 0-100
   if (current_micros - pre_micros >= ((pwm_period/100)*duty)){
     digitalWrite(pin, LOW);
     }
-
-  // Check if it's time to update the PWM signal
   if (current_micros - pre_micros >= pwm_period && duty != 0) {
     pre_micros = current_micros;
     digitalWrite(pin, HIGH);
@@ -60,41 +54,26 @@ void pwm(int pin, float duty){//duty [%] from 0-100
   else{
     digitalWrite(pin, LOW);
   }
-  // Serial.println(((pwm_period/100)*duty));
 }
-
-
 
 float readSensor() {
   float encoder_read;
   encoder_read = analogRead(encoderPin); //
-  // Serial.print("Encoder sensor input value ----> ");
-  // Serial.println(encoder_read);
   if (encoder_read<encoder_threshold){
     if (encoder_state_change){
-      // encoder_counter ();
       encoder_state_change = 0;
     }
   }
   else{
     encoder_state_change = 1;
   }
-  // Serial.print("State: ");
-  // Serial.println(encoder_state_change);
-  // Serial.print("count: ");
-  // Serial.println(encoder_count);
-  // Serial.print("Read: ");
-  // Serial.println(analogRead(analogPin));
   float angle = map((encoder_count%counts_per_rotation), 0, counts_per_rotation-1, 0, 359);
-  // Serial.println(angle);
   return angle;
 }
 
 void controlActuator(float output) {
   int PID = output;
   int max_pwm = 255;
-  // Serial.print("PWM: ");
-  // Serial.println(output);
   if (PID >= max_pwm) PID = max_pwm;
   if (PID <= -max_pwm) PID = -max_pwm; 
 
@@ -111,82 +90,22 @@ void controlActuator(float output) {
 }
 
 void setup() {
-  // Initialize your hardware, e.g., temperature sensor and actuator
-  // Set up serial communication for debugging
   Serial.begin(115200);
   pinMode(encoderPin, INPUT);
   attachInterrupt(digitalPinToInterrupt(encoderPin), encoder_counter, CHANGE);
 
   pinMode(Red, OUTPUT);
   pinMode(Black, OUTPUT);
-  
 }
 
-
-
 void loop() {
-// readSensor(); 
-
-// Serial.println(encoder_count);
-// if (abs(encoder_count)<(40*counts_per_rotation)){
-//   analogWrite(Black,150);
-// }
-// else{
-//   if(print_one){
-//     analogWrite(Red,0);
-//     Serial.println(encoder_count);
-//     print_one=false;
-//     }
-// }
-
-// pwm(Red, 80);
-// analogWrite(Red,50);
-
-// if (i == 10000){
-//   i = 0;
-//   j ++ ;
-//   Serial.println(j);
-//   if (j > 255){
-//     Serial.println("Speed reset!");
-//     j = 0;
-    
-//   }
-//   }
-// i++;
-  
-  // Read the current temperature from a sensor (replace with your actual sensor code)
   input = readSensor();
-
-  // Calculate the error
   error = setpoint - input;
-
-  // Calculate the proportional term
   float P = Kp * error;
-
-  // Calculate the integral term
   integral += Ki * error;
-
-  // Calculate the derivative term
   float derivative = Kd * (error - last_error);
-
-  // Calculate the control output
   output = P + integral + derivative;
   output = -125;
-  // Apply the control output to your actuator (e.g., a heater or cooler)
   controlActuator(output);
-
-  // Store the current error for the next iteration
   last_error = error;
-
-  // Print the values for debugging
-  // Serial.print("Input: ");
-  // Serial.print(input);
-  // Serial.print("  Output: ");
-  // Serial.print(output);
-  // Serial.print("  Error: ");
-  // Serial.println(error);
-
-  // Add a delay to control the loop update rate
-  // delay(1000);  // Adjust as needed
-  
 }
