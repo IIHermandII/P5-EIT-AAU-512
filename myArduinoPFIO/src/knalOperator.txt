@@ -1,0 +1,62 @@
+#include <Arduino.h>
+#include <krnl.h>
+#define STK 110
+const byte interruptPin = 2;
+
+/*
+Create in "krnl" a design with two tasks; 1 producer task sending msg via a msgQ to 1 consumer task. 
+Producer task has higher priority and runs periodically every 20 mS. 
+Consumer task ready when msgQ is not empty.
+*/
+
+struct k_t *p1, *p2, *sem1, *sem2;  
+struct k_msg_t *msgQ;
+char st1[STK], st2[STK];  //stack 1 and stack 2
+int dataBufForMsgQ[10];   //data MsQ buffer
+
+void blink() {
+  state = !state;
+}
+
+void Task_read() {
+  k_set_sem_timer(sem1, 20); //a semafore timer avaleble evry 100 ms 
+  int i = 1;
+  char res;
+  while (1) {
+    k_wait(sem1, 0);          //wating untill the samafore is avalible
+    res = k_send(msgQ, &i);   //putting i into the mesQ
+    k_signal(sem2);
+  }
+}
+
+void Task_write() {
+  char res;               
+  int ii, lostM;
+  int count;
+  while (1) { 
+    k_wait(sem2, 0);                        
+    count = k_msg_count(msgQ);
+    res = k_receive(msgQ, &ii, 0, &lostM);  
+    //Serial.print("messeges wating ");
+    Serial.print(count);      
+    //Serial.print(" now walue: ");
+    Serial.println(ii);                                     
+  }
+}
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("krnl setup");
+  k_init(2, 2, 1);                          //taskNR, semNR, fifo
+  p1 = k_crt_task(Task_read, 9, st1, STK); //taskName, Provoty, stack, stactSize
+  p2 = k_crt_task(Task_write, 10, st2, STK);
+  sem1 = k_crt_sem(0, 1);                   //avaleble from start, number of semafors
+  sem2 = k_crt_sem(10, 10);
+  msgQ = k_crt_send_Q(10, sizeof(int), dataBufForMsgQ); //numberof spases, int size, array with number of spaces
+  attachInterrupt(digitalPinToInterrupt(interruptPin), blink, CHANGE);
+  k_start();                                //start the shit
+}
+
+void loop() {
+  Serial.println("ERROR");
+}
