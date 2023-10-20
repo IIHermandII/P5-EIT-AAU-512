@@ -85,14 +85,14 @@ float readSensor() {
   // Serial.println(encoder_count);
   // Serial.print("Read: ");
   // Serial.println(analogRead(analogPin));
-  float angle = map((encoder_count%counts_per_rotation), 0, counts_per_rotation-1, 0, 360);
+  float angle = map((encoder_count%counts_per_rotation), 0, counts_per_rotation-1, 0, 359);
   // Serial.println(angle);
   return angle;
 }
 
 void controlActuator(float output) {
   int PID = output;
-  int max_pwm = 100;
+  int max_pwm = 255;
   // Serial.print("PWM: ");
   // Serial.println(output);
   if (PID >= max_pwm) PID = max_pwm;
@@ -100,12 +100,12 @@ void controlActuator(float output) {
 
   if (PID >=0 ) {
     clock_wise=true;
-    pwm(Black, PID);
+    analogWrite(Black, PID);
     pinMode(Red, LOW);
     }
   else {
     clock_wise=false;
-    pwm(Red, -PID);
+    analogWrite(Red, -PID);
     pinMode(Black, LOW);
     } 
 }
@@ -125,19 +125,19 @@ void setup() {
 
 
 void loop() {
-readSensor(); 
+// readSensor(); 
 
 // Serial.println(encoder_count);
-if (abs(encoder_count)<(40*counts_per_rotation)){
-  analogWrite(Red,150);
-}
-else{
-  if(print_one){
-    analogWrite(Red,0);
-    Serial.println(encoder_count);
-    print_one=false;
-    }
-}
+// if (abs(encoder_count)<(40*counts_per_rotation)){
+//   analogWrite(Black,150);
+// }
+// else{
+//   if(print_one){
+//     analogWrite(Red,0);
+//     Serial.println(encoder_count);
+//     print_one=false;
+//     }
+// }
 
 // pwm(Red, 80);
 // analogWrite(Red,50);
@@ -153,7 +153,7 @@ else{
 //   }
 //   }
 // i++;
-  /*
+  
   // Read the current temperature from a sensor (replace with your actual sensor code)
   input = readSensor();
 
@@ -188,5 +188,5 @@ else{
 
   // Add a delay to control the loop update rate
   // delay(1000);  // Adjust as needed
-  */
+  
 }
