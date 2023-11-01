@@ -109,12 +109,12 @@ void interrupt_processing_curent_possion(struct possin_data* motor_data){
   motor_data->time_messure = millis();
   static unsigned long last_time_mesure = 0;
   if (motor_data->time_messure - last_time_mesure > 30){ // only inters after 30 ms this will // make sure we only acces data at given time intervals 
-  last_time_mesure = millis();
-  // Serial.print("encoder_counter_time_arr[");
-  // Serial.print(encode_array_possion-1);
-  // Serial.print("]=");
-  // Serial.println(encoder_counter_time_arr[encode_array_possion-1]);
-  motor_data->curent_possion = encoder_counter_time_arr[encode_array_possion-1];
+    last_time_mesure = millis();
+    // Serial.print("encoder_counter_time_arr[");
+    // Serial.print(encode_array_possion-1);
+    // Serial.print("]=");
+    // Serial.println(encoder_counter_time_arr[encode_array_possion-1]);
+    motor_data->curent_possion = encoder_counter_time_arr[encode_array_possion-1];
   }
 }
 
@@ -150,3 +150,4 @@ void loop() {
   Serial.println(motor_data.direction);
   delay(100);
 }
+ 
