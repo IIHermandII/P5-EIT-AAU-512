@@ -6,9 +6,9 @@ float Ki = 0.7;
 float Kd = 0;
 
 // Define variables
-float target = 0;  
-float input, output, error;
-float last_error = 0;
+int target = 0;  
+int input, output, error;
+int last_error = 0;
 float integral = 0;
 int encoder_count = 0;
 const int counts_per_rotation = 178;
@@ -22,7 +22,8 @@ int step=0;
 
 
 // Define pins
-const int encoderPin = 2;
+const int encoder_Pin = 2;
+const int encoder_2_Pin = 3;
 const int Black = 11;
 const int Red = 9;
 
@@ -35,6 +36,12 @@ struct PID_values {
 // Interupt function
 void encoder_counter (){
   if (clock_wise){
+   // int temp = analogRead(encoder_Pin); 
+   // int temp2 = analogRead(encoder_2_Pin);
+   // Serial.print("1:");
+   // Serial.print(temp);
+   // Serial.print(" 2:");
+   // Serial.println(analogRead(temp2));
     if (encoder_count == counts_per_rotation) {
       encoder_count = 0;
     }
@@ -48,13 +55,13 @@ void encoder_counter (){
   }
 }
 
-float readSensor() {
-  float encoder_read;
-  encoder_read = analogRead(encoderPin); //
-  // Serial.print("Encoder count : ");
-  float angle = map((encoder_count), 0, counts_per_rotation, 0, 359);
-  return angle;
-}
+// float readSensor(int encoder) {
+//   float encoder_read;
+//   encoder_read = analogRead(encoder); //
+//   // Serial.print("Encoder count : ");
+//   float angle = map((encoder_count), 0, counts_per_rotation, 0, 359);
+//   return angle;
+// }
 
 void controlActuator(float output) {
   int PID = output;
@@ -92,31 +99,58 @@ float anti_windup(float i, float max){
   return value;
 }
 
-void error_calc(float input, float target){
-  if (input > target){
-    if (input - target < counts_per_rotation/2){
-        error = -(input - target);
-      
-    }
-    else{
-        error = counts_per_rotation - input + target;
+// void error_calc(float input, float target){
+//   if (input > target){
+//     if (input - target < counts_per_rotation/2){
+//         error = -(input - target);
+//     }
+//     else{
+//         error = counts_per_rotation - input + target;
+//     }
+//   }
+//   else {
+//       if(target-input < counts_per_rotation/2){
+//         error = target-input;
+//       }
+//       else{
+//         error = -(counts_per_rotation - target +  input);
+//       }
+//     }
+// }
 
-    }
+int mod( int x, int y ){
+  int res;
+  if(x<0){
+    res = ((x+1)%y)+y-1;
   }
-  else {
-      if(target-input < counts_per_rotation/2){
-        error = target-input;
-      }
-      else{
-        error = -(counts_per_rotation - target +  input);
-      }
-    }
+  else{
+    res = x%y;
+  }
+  return res;
 }
+
+
+void error_calc(int input, int target){
+  int diffrance = target - input;
+
+  if (diffrance > counts_per_rotation/2){
+    Serial.println("i was a big boi");
+    diffrance = (-1)*diffrance; 
+    error = -mod(diffrance, counts_per_rotation); 
+  }
+  else if(diffrance < -(counts_per_rotation/2)){
+    error = mod(diffrance, counts_per_rotation); 
+  }
+  else{
+    error = diffrance;
+  }
+} 
 
 void setup() {
   Serial.begin(115200);
-  pinMode(encoderPin, INPUT);
-  attachInterrupt(digitalPinToInterrupt(encoderPin), encoder_counter, CHANGE);
+  pinMode(encoder_Pin, INPUT);
+  pinMode(encoder_2_Pin, INPUT);
+  attachInterrupt(digitalPinToInterrupt(encoder_Pin), encoder_counter, CHANGE);
 
   pinMode(Red, OUTPUT);
   pinMode(Black, OUTPUT);
@@ -125,61 +159,13 @@ void setup() {
 void loop() {
   time = millis();
   if (time - last_time > periode) {
-    // target += 10;
-    
-    // if (target > 178){
-    //   target = 0;
-    // }
     step ++;
-    if (step==100){ 
-      target=10;
-      Serial.print("encoder count: ");
-      Serial.println(input);
-      Serial.print("target: ");
-      Serial.println(target);
-    }
-    if(step==101){
-      Serial.print("error: ");
-      Serial.println(error);
-    }
-    if (step==200){ 
-      target=counts_per_rotation/2;
-      Serial.print("encoder count: ");
-      Serial.println(input);
-      Serial.print("target: ");
-      Serial.println(target);
-      }
-    if(step==201){
-      Serial.print("error: ");
-      Serial.println(error);
-    }  
-    if (step==300){ 
-      target=170;
-      Serial.print("encoder count: ");
-      Serial.println(input);
-      Serial.print("target: ");
-      Serial.println(target);
-      }
-    if(step==301){
-      Serial.print("error: ");
-      Serial.println(error);
-    }
-    if (step==400){ 
-      target=counts_per_rotation/2;
-      Serial.print("encoder count: ");
-      Serial.println(input);
-      Serial.print("target: ");
-      Serial.println(target);
-      }
-    if(step==401){
-      Serial.print("error: ");
-      Serial.println(error);
-    }
-    if (step > 410){
+    
+    if(step > 100){
+      target = random(0,counts_per_rotation-1);
       step = 0;
     }
     
-    // input = readSensor();  //
     input = encoder_count;
     // Serial.print("encoder count: ");
     // Serial.println(input);
@@ -191,7 +177,6 @@ void loop() {
     integral = anti_windup(integral,10);
 
     float derivative = Kd * (error - last_error);    
-    
     
     output = P + integral + derivative;
     Serial.print("P, I, D : ");
