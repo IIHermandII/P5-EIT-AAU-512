@@ -1,7 +1,8 @@
 import serial
 import time
 
-arduino = serial.Serial(port='COM19',  baudrate=115200, timeout=.1)
+#arduino = serial.Serial(port='COM19',  baudrate=115200, timeout=.1)#Asbjørn
+arduino = serial.Serial(port='COM3',  baudrate=115200, timeout=.1)
 
 
 def write_read(x):

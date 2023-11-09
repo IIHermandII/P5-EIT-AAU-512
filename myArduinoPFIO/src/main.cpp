@@ -22,7 +22,8 @@ int step=0;
 
 // Define pins
 const int encoder_Pin = 2;
-const int encoder_2_Pin = 3;
+const int encoder_2_Pin = 8;
+const int optical_sensor = 3; 
 const int Black = 11;
 const int Red = 9;
 
@@ -37,18 +38,34 @@ void encoder_counter (){
   //XOR OF A, B
   if(A != B){
     //Clockwise
+    clock_wise=true;
     if (encoder_count <= 0) {
-      encoder_count = counts_per_rotation-1;
+      encoder_count = counts_per_rotation;
     }
     encoder_count --;
   }
   else{
     //Counter clockwise
-    if (encoder_count >= counts_per_rotation-1) {
+    clock_wise=false;
+    if (encoder_count >= counts_per_rotation) {
       encoder_count = 0;
     }
     encoder_count ++;
   }  
+}
+
+// Interrupt
+void angle_reset(){
+  //Serial.println("Factory reset");
+  static int slot_width = 2;
+
+  if(clock_wise){
+    encoder_count = 0;
+  }
+  else{
+    encoder_count = 0 + slot_width;
+  }
+  
 }
 
 // Controls the PWM signal to the motor
@@ -59,12 +76,10 @@ void control_actuator(float output) {
   if (PID <= -max_pwm) PID = -max_pwm; 
 
   if (PID >=0) {
-    //clock_wise=true;
     analogWrite(Black, PID);
     pinMode(Red, LOW);
     }
   else {
-    //clock_wise=false;
     analogWrite(Red, -PID);
     pinMode(Black, LOW);
     } 
@@ -95,34 +110,57 @@ void error_calc(int input, int target){
   }
 } 
 
+void serial_read(){
+  if(Serial.available()){
+    target = map(Serial.readString().toInt(),0,359,0,177);
+    Serial.print("New target set to: "); 
+    Serial.println(target);
+  }
+}
+
+void calibrate(){
+  Serial.println("Calibrating");
+  analogWrite(Black, 150);
+  pinMode(Red, LOW);
+  delay(1000);
+  pinMode(Black, LOW);
+}
+
 void setup() {
   Serial.begin(115200);
+  Serial.println("Hello world");
   pinMode(encoder_Pin, INPUT);
   pinMode(encoder_2_Pin, INPUT);
+  pinMode(optical_sensor, INPUT);
+  
+  attachInterrupt(digitalPinToInterrupt(optical_sensor), angle_reset, RISING);
   attachInterrupt(digitalPinToInterrupt(encoder_Pin), encoder_counter, CHANGE);
 
   pinMode(Red, OUTPUT);
   pinMode(Black, OUTPUT);
+
+  calibrate();
 }
 
 void loop() {
   time = millis();
+  serial_read();
   if (time - last_time > periode) {
     step ++;
-    
+    //target += 10;
 
-    if (step==100){ 
-      target=70;
-      Serial.print("encoder count: ");
-      Serial.println(input);
-      Serial.print("target: ");
-      Serial.println(target);
-    }
-    if (step > 200){
-      target = 0;
+    // if (step==100){ 
+    //   target=70;
+    //   Serial.print("encoder count: ");
+    //   Serial.println(input);
+    //   Serial.print("target: ");
+    //   Serial.println(target);
+    // }
+    if (step > 177){
+      //target = 0;
       step = 0;
     }
-
+    
     input = encoder_count;
     error_calc(input,target);
     
