@@ -7,6 +7,7 @@ void setup() {
 
 void loop() {
   if (Serial.available()) {
+    
     String RxedString = Serial.readString();  // Read the entire string
     if (RxedString == "4") {
       digitalWrite(LED_BUILTIN, HIGH);
