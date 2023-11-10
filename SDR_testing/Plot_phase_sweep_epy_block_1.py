@@ -11,6 +11,7 @@ from gnuradio import gr
 import uhd
 import time 
 import serial
+import pathlib
 """
 TO TRY:
 -Ny USB HUB / gav 1ms
@@ -35,7 +36,10 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         )
         # if an attribute with the same name as a parameter is found,
         # a callback is registered (properties work, too).
-        self.vnx = cdll.LoadLibrary(r"C:\Users\emill\OneDrive - Aalborg Universitet\GNU\VNX_dps64.dll") # H phase shifter libery
+        self.path = str(pathlib.Path().resolve())+r"\VNX_dps64.dll"
+        print("#####################path")
+        print(self.path)
+        self.vnx = cdll.LoadLibrary(r"C:\Users\emill\OneDrive - Aalborg Universitet\GIT2\P5-EIT-AAU-512\SDR_testing\VNX_dps64.dll") # H phase shifter libery
         self.vnx.fnLPS_SetTestMode(False)  # Use actual devices
         self.DeviceIDArray = c_int * 20
         self.Devices = self.DeviceIDArray()  # This array will hold the list of device handles returned by the DLL
