@@ -2,21 +2,21 @@
 
 void setup() {
   Serial.begin(115200);
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(12, OUTPUT);
+  // digitalWrite(12, LOW);
 }
 
 void loop() {
   if (Serial.available()) {
-    
+    // digitalWrite(12, HIGH);
     String RxedString = Serial.readString();  // Read the entire string
-    if (RxedString == "4") {
-      digitalWrite(LED_BUILTIN, HIGH);
+    if (RxedString == "180") {
+      digitalWrite(12, HIGH);
       delay(1000);
-      digitalWrite(LED_BUILTIN, LOW);
-    }
+      digitalWrite(12, LOW);
+    }  
+    
   }
 }
 
-int myFunction(int x, int y) {
-  return x + y;
-}
+

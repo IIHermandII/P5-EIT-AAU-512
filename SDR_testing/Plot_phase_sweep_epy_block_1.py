@@ -2,7 +2,7 @@
 Embedded Python Blocks:
 
 Each time this file is saved, GRC will instantiate the first class it finds
-to get ports and parameters of your block. The arguments to __init__  will
+to get ports and parameters of your block. The arguments to _init_  will
 be the parameters. All of them are required to have default values!
 """
 from ctypes import *
@@ -11,7 +11,6 @@ from gnuradio import gr
 import uhd
 import time 
 import serial
-import pathlib
 """
 TO TRY:
 -Ny USB HUB / gav 1ms
@@ -36,10 +35,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         )
         # if an attribute with the same name as a parameter is found,
         # a callback is registered (properties work, too).
-        self.path = str(pathlib.Path().resolve())+r"\VNX_dps64.dll"
-        print("#####################path")
-        print(self.path)
-        self.vnx = cdll.LoadLibrary(r"C:\Users\emill\OneDrive - Aalborg Universitet\GIT2\P5-EIT-AAU-512\SDR_testing\VNX_dps64.dll") # H phase shifter libery
+        self.vnx = cdll.LoadLibrary(r"C:\Users\asbjo\OneDrive\Dokumenter\AAU\Asbjørns_gnu\VNX_dps64.dll")
         self.vnx.fnLPS_SetTestMode(False)  # Use actual devices
         self.DeviceIDArray = c_int * 20
         self.Devices = self.DeviceIDArray()  # This array will hold the list of device handles returned by the DLL
@@ -161,9 +157,20 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
             PhaseStepNumber = PhaseStepNumber + 1
                  
         print("Sweep time: ",(time.time()-tSweep)*1000, "ms")  
-        #serial_arduino = serial.Serial('COM9',baudrate=115200,bytesize=8,parity='N',stopbits=1)
-        #serial_arduino.write(bytes(str(max_angle),'utf-8'))
+        # serial_arduino = serial.Serial('COM20',baudrate=115200,bytesize=8,parity='N',stopbits=1)
+        # time.sleep(2)
+        # serial_arduino.write(bytes(str(4),"utf-8")) #needs "" insted of '' do to python mecanics
+
+        SerialObj = serial.Serial('COM20', baudrate=115200, bytesize=8, parity='N', stopbits=1)
+    
+        # input()
+        time.sleep(1.6)
+        SerialObj.write(bytes(str(180), "utf-8"))  # Transmit input to Arduino
+        print("just sendt a 4")
+        time.sleep(0.4)  # Optional delay to ensure data is sent before proceeding
+        # SerialObj.close()
+
+
         output_items[0] = output_items[0][0:PhaseStepNumber]
         output_items[1][:] = max_angle
         return len(output_items[0])
-        

@@ -174,43 +174,41 @@ blocks:
     SignalFreq: Freq
     _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
       \ GRC will instantiate the first class it finds\nto get ports and parameters\
-      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
-      \ them are required to have default values!\n\"\"\"\nfrom ctypes import *\n\
-      import numpy as np\nfrom gnuradio import gr\nimport uhd\nimport time \nimport\
-      \ serial\nimport pathlib\nimport os\n\"\"\"\nTO TRY:\n-Ny USB HUB / gav 1ms\n\
-      -Skrive til en enkelt enhed / stadig langsomt\n-Unders\xF8ge om der er et usb\
-      \ handle som fucker up - det virker jo til set frequency og s\xE5 ikke til set\
-      \ phase - og phase er endda en mindre besked end frequency / PAS\n-Sende besked\
-      \ sammen med s\xE6t working frequency / gav 10ms delay pr. besked\n-S\xE6t working\
-      \ frequency sammen i main loopet / 40ms delay - 10 pr enhed\n-Pr\xF8v at lade\
-      \ streamhandle ligge i Multi klassen og kun generere et nyt hvis det et None\n\
-      -Evt. sk\xE6r ned p\xE5 buffer for at det ikke tager l\xE6ngere tid end h\xF8\
-      jst n\xF8dvendigt i Recv_num\n\"\"\"\n\nclass blk(gr.sync_block):  # other base\
-      \ classes are basic_block, decim_block, interp_block\n    \"\"\"Embedded Python\
-      \ Block example - a simple multiply const\"\"\"\n\n    def __init__(self, SampleRate\
-      \ = 1, SignalFreq=1, Gain=1, Rx1_Phase_Cal=1, Rx2_Phase_Cal=1, Rx3_Phase_Cal=1,\
-      \ Rx4_Phase_Cal=1):  # only default arguments here\n        \"\"\"arguments\
-      \ to this function show up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n\
-      \            self,\n            name='Angle sweeper',  # will show up in GRC\n\
-      \            in_sig=[],\n            out_sig=[np.complex64, np.float32]\n  \
-      \      )\n        # if an attribute with the same name as a parameter is found,\n\
-      \        # a callback is registered (properties work, too).\n        self.path\
-      \ = str(pathlib.Path().resolve())+\"\\VNX_dps64.dll\"\n        print(\"#####################path\"\
-      )\n        print(self.path)\n        #r\"C:\\Users\\emill\\OneDrive - Aalborg\
-      \ Universitet\\GIT2\\P5-EIT-AAU-512\\SDR_testing\\VNX_dps64.dll\"\n        self.vnx\
-      \ = cdll.LoadLibrary(os.path.normpath(self.path)) # H phase shifter libery\n\
-      \        self.vnx.fnLPS_SetTestMode(False)  # Use actual devices\n        self.DeviceIDArray\
-      \ = c_int * 20\n        self.Devices = self.DeviceIDArray()  # This array will\
-      \ hold the list of device handles returned by the DLL\n\n        print('-------\
-      \ Initialize Lab Bricks -------')\n        self.numDevices = self.vnx.fnLPS_GetNumDevices()\
-      \ # GetNumDevices will determine how many LPS devices are availible\n      \
-      \  print(str(self.numDevices), ' device(s) found')\n\n        # GetDevInfo generates\
-      \ a list, stored in the devices array, of\n        # every availible LPS device\
-      \ attached to the system\n        # GetDevInfo will return the number of device\
-      \ handles in the array\n        dev_info = self.vnx.fnLPS_GetDevInfo(self.Devices)\n\
-      \        print('GetDevInfo returned', str(dev_info))\n        self.ser_num =\
-      \ []\n        # GetSerialNumber will return the devices serial number\n    \
-      \    for i in range(self.numDevices):\n            self.ser_num.append(self.vnx.fnLPS_GetSerialNumber(self.Devices[i]))\n\
+      \ of your block. The arguments to _init_  will\nbe the parameters. All of them\
+      \ are required to have default values!\n\"\"\"\nfrom ctypes import *\nimport\
+      \ numpy as np\nfrom gnuradio import gr\nimport uhd\nimport time \nimport serial\n\
+      \"\"\"\nTO TRY:\n-Ny USB HUB / gav 1ms\n-Skrive til en enkelt enhed / stadig\
+      \ langsomt\n-Unders\xF8ge om der er et usb handle som fucker up - det virker\
+      \ jo til set frequency og s\xE5 ikke til set phase - og phase er endda en mindre\
+      \ besked end frequency / PAS\n-Sende besked sammen med s\xE6t working frequency\
+      \ / gav 10ms delay pr. besked\n-S\xE6t working frequency sammen i main loopet\
+      \ / 40ms delay - 10 pr enhed\n-Pr\xF8v at lade streamhandle ligge i Multi klassen\
+      \ og kun generere et nyt hvis det et None\n-Evt. sk\xE6r ned p\xE5 buffer for\
+      \ at det ikke tager l\xE6ngere tid end h\xF8jst n\xF8dvendigt i Recv_num\n\"\
+      \"\"\n\nclass blk(gr.sync_block):  # other base classes are basic_block, decim_block,\
+      \ interp_block\n    \"\"\"Embedded Python Block example - a simple multiply\
+      \ const\"\"\"\n\n    def __init__(self, SampleRate = 1, SignalFreq=1, Gain=1,\
+      \ Rx1_Phase_Cal=1, Rx2_Phase_Cal=1, Rx3_Phase_Cal=1, Rx4_Phase_Cal=1):  # only\
+      \ default arguments here\n        \"\"\"arguments to this function show up as\
+      \ parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n            self,\n\
+      \            name='Angle sweeper',  # will show up in GRC\n            in_sig=[],\n\
+      \            out_sig=[np.complex64, np.float32]\n        )\n        # if an\
+      \ attribute with the same name as a parameter is found,\n        # a callback\
+      \ is registered (properties work, too).\n        self.vnx = cdll.LoadLibrary(r\"\
+      C:\\Users\\asbjo\\OneDrive\\Dokumenter\\AAU\\Asbj\xF8rns_gnu\\VNX_dps64.dll\"\
+      )\n        self.vnx.fnLPS_SetTestMode(False)  # Use actual devices\n       \
+      \ self.DeviceIDArray = c_int * 20\n        self.Devices = self.DeviceIDArray()\
+      \  # This array will hold the list of device handles returned by the DLL\n\n\
+      \        print('------- Initialize Lab Bricks -------')\n        self.numDevices\
+      \ = self.vnx.fnLPS_GetNumDevices() # GetNumDevices will determine how many LPS\
+      \ devices are availible\n        print(str(self.numDevices), ' device(s) found')\n\
+      \n        # GetDevInfo generates a list, stored in the devices array, of\n \
+      \       # every availible LPS device attached to the system\n        # GetDevInfo\
+      \ will return the number of device handles in the array\n        dev_info =\
+      \ self.vnx.fnLPS_GetDevInfo(self.Devices)\n        print('GetDevInfo returned',\
+      \ str(dev_info))\n        self.ser_num = []\n        # GetSerialNumber will\
+      \ return the devices serial number\n        for i in range(self.numDevices):\n\
+      \            self.ser_num.append(self.vnx.fnLPS_GetSerialNumber(self.Devices[i]))\n\
       \            print('Serial number:', str(self.ser_num[i]))\n            init_dev\
       \ = self.vnx.fnLPS_InitDevice(self.Devices[i])  #InitDevice will prepare the\
       \ device for operation\n            print('InitDevice returned', str(init_dev))\n\
@@ -265,10 +263,15 @@ blocks:
       \                max_angle = SteerAngle\n\n            output_items[0][PhaseStepNumber]\
       \ = ((1)*SteerAngle + (1j * PeakValue))\n            PhaseStepNumber = PhaseStepNumber\
       \ + 1\n                 \n        print(\"Sweep time: \",(time.time()-tSweep)*1000,\
-      \ \"ms\")  \n        #serial_arduino = serial.Serial('COM9',baudrate=115200,bytesize=8,parity='N',stopbits=1)\n\
-      \        #serial_arduino.write(bytes(str(max_angle),'utf-8'))\n        output_items[0]\
-      \ = output_items[0][0:PhaseStepNumber]\n        output_items[1][:] = max_angle\n\
-      \        return len(output_items[0])\n        "
+      \ \"ms\")  \n        # serial_arduino = serial.Serial('COM20',baudrate=115200,bytesize=8,parity='N',stopbits=1)\n\
+      \        # time.sleep(2)\n        # serial_arduino.write(bytes(str(4),\"utf-8\"\
+      )) #needs \"\" insted of '' do to python mecanics\n\n        SerialObj = serial.Serial('COM20',\
+      \ baudrate=115200, bytesize=8, parity='N', stopbits=1)\n    \n        # input()\n\
+      \        time.sleep(1.6)\n        SerialObj.write(bytes(str(180), \"utf-8\"\
+      ))  # Transmit input to Arduino\n        print(\"just sendt a 4\")\n       \
+      \ time.sleep(0.4)  # Optional delay to ensure data is sent before proceeding\n\
+      \        # SerialObj.close()\n\n\n        output_items[0] = output_items[0][0:PhaseStepNumber]\n\
+      \        output_items[1][:] = max_angle\n        return len(output_items[0])"
     affinity: ''
     alias: ''
     comment: ''
@@ -283,7 +286,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [480, 488.0]
+    coordinate: [480, 464.0]
     rotation: 0
     state: true
 - name: qtgui_const_sink_x_0
