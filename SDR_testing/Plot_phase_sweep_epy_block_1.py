@@ -11,6 +11,8 @@ from gnuradio import gr
 import uhd
 import time 
 import serial
+import pathlib
+import os
 """
 TO TRY:
 -Ny USB HUB / gav 1ms
@@ -35,7 +37,15 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         )
         # if an attribute with the same name as a parameter is found,
         # a callback is registered (properties work, too).
-        self.vnx = cdll.LoadLibrary(r"C:\Users\asbjo\OneDrive\Dokumenter\AAU\Asbjørns_gnu\VNX_dps64.dll")
+        # self.vnx = cdll.LoadLibrary(r"C:\Users\asbjo\OneDrive\Dokumenter\AAU\Asbjørns_gnu\VNX_dps64.dll")
+        
+        self.path = str(pathlib.Path().resolve())+"\VNX_dps64.dll"
+        print("#####################path")
+        print(self.path)
+        #r"C:\Users\emill\OneDrive - Aalborg Universitet\GIT2\P5-EIT-AAU-512\SDR_testing\VNX_dps64.dll"
+        self.vnx = cdll.LoadLibrary(os.path.normpath(self.path)) #
+        
+        
         self.vnx.fnLPS_SetTestMode(False)  # Use actual devices
         self.DeviceIDArray = c_int * 20
         self.Devices = self.DeviceIDArray()  # This array will hold the list of device handles returned by the DLL
