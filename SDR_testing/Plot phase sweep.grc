@@ -177,11 +177,11 @@ blocks:
       \ of your block. The arguments to _init_  will\nbe the parameters. All of them\
       \ are required to have default values!\n\"\"\"\nfrom ctypes import *\nimport\
       \ numpy as np\nfrom gnuradio import gr\nimport uhd\nimport time \nimport serial\n\
-      import pathlib\nimport os\n\"\"\"\nTO TRY:\n-Ny USB HUB / gav 1ms\n-Skrive til\
-      \ en enkelt enhed / stadig langsomt\n-Unders\xF8ge om der er et usb handle som\
-      \ fucker up - det virker jo til set frequency og s\xE5 ikke til set phase -\
-      \ og phase er endda en mindre besked end frequency / PAS\n-Sende besked sammen\
-      \ med s\xE6t working frequency / gav 10ms delay pr. besked\n-S\xE6t working\
+      import sys\nimport pathlib\nimport os\n\"\"\"\nTO TRY:\n-Ny USB HUB / gav 1ms\n\
+      -Skrive til en enkelt enhed / stadig langsomt\n-Unders\xF8ge om der er et usb\
+      \ handle som fucker up - det virker jo til set frequency og s\xE5 ikke til set\
+      \ phase - og phase er endda en mindre besked end frequency / PAS\n-Sende besked\
+      \ sammen med s\xE6t working frequency / gav 10ms delay pr. besked\n-S\xE6t working\
       \ frequency sammen i main loopet / 40ms delay - 10 pr enhed\n-Pr\xF8v at lade\
       \ streamhandle ligge i Multi klassen og kun generere et nyt hvis det et None\n\
       -Evt. sk\xE6r ned p\xE5 buffer for at det ikke tager l\xE6ngere tid end h\xF8\
@@ -234,6 +234,13 @@ blocks:
       \                case 24783:\n                    self.lookUp.update({2 : self.Devices[i]})\
       \  \n                case 24784: \n                    self.lookUp.update({3\
       \ : self.Devices[i]})\n        \n        #self.data = np.zeros((100),dtype=np.complex64)\n\
+      \    \n    def serial_ports():\n    # ONLY for windows, and only 1 port expect\n\
+      \        if sys.platform.startswith('win'):  # windows\n            ports =\
+      \ ['COM%s' % (i + 1) for i in range(256)]\n        else:\n            raise\
+      \ EnvironmentError('NOT WINDOWS PLATFORM')\n\n        for port in ports:  #\
+      \ i in COM1...COM256\n            try:\n                s = serial.Serial(port)\n\
+      \                s.close()\n                result = port\n            except\
+      \ (OSError, serial.SerialException):\n                pass\n        return result\n\
       \n    def work(self, input_items, output_items):\n        \"\"\"example: multiply\
       \ with constant\"\"\"        \n        max_signal = -10000\n        max_angle\
       \ = 0\n\n        win = np.hamming(self.numSamples) #window function\n\n    \
@@ -269,7 +276,7 @@ blocks:
       \ + 1\n                 \n        print(\"Sweep time: \",(time.time()-tSweep)*1000,\
       \ \"ms\")  \n        # serial_arduino = serial.Serial('COM20',baudrate=115200,bytesize=8,parity='N',stopbits=1)\n\
       \        # time.sleep(2)\n        # serial_arduino.write(bytes(str(4),\"utf-8\"\
-      )) #needs \"\" insted of '' do to python mecanics\n\n        SerialObj = serial.Serial('COM20',\
+      )) #needs \"\" insted of '' do to python mecanics\n\n        SerialObj = serial.Serial(self.serial_ports(),\
       \ baudrate=115200, bytesize=8, parity='N', stopbits=1)\n    \n        # input()\n\
       \        time.sleep(1.6)\n        SerialObj.write(bytes(str(180), \"utf-8\"\
       ))  # Transmit input to Arduino\n        print(\"just sendt a 4\")\n       \
