@@ -234,11 +234,11 @@ blocks:
       \                case 24783:\n                    self.lookUp.update({2 : self.Devices[i]})\
       \  \n                case 24784: \n                    self.lookUp.update({3\
       \ : self.Devices[i]})\n        \n        #self.data = np.zeros((100),dtype=np.complex64)\n\
-      \    \n    def serial_ports():\n    # ONLY for windows, and only 1 port expect\n\
-      \        if sys.platform.startswith('win'):  # windows\n            ports =\
-      \ ['COM%s' % (i + 1) for i in range(256)]\n        else:\n            raise\
-      \ EnvironmentError('NOT WINDOWS PLATFORM')\n\n        for port in ports:  #\
-      \ i in COM1...COM256\n            try:\n                s = serial.Serial(port)\n\
+      \    \n    def serial_ports(self):\n    # ONLY for windows, and only 1 port\
+      \ expect\n        if sys.platform.startswith('win'):  # windows\n          \
+      \  ports = [\"COM%s\" % (i + 1) for i in range(256)]\n        else:\n      \
+      \      raise EnvironmentError('NOT WINDOWS PLATFORM')\n\n        for port in\
+      \ ports:  # i in COM1...COM256\n            try:\n                s = serial.Serial(port)\n\
       \                s.close()\n                result = port\n            except\
       \ (OSError, serial.SerialException):\n                pass\n        return result\n\
       \n    def work(self, input_items, output_items):\n        \"\"\"example: multiply\
