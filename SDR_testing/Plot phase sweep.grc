@@ -79,7 +79,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: int(5e6)
+    value: int(20e6)
   states:
     bus_sink: false
     bus_source: false
@@ -187,7 +187,14 @@ blocks:
       -Evt. sk\xE6r ned p\xE5 buffer for at det ikke tager l\xE6ngere tid end h\xF8\
       jst n\xF8dvendigt i Recv_num\n\"\"\"\n\nclass blk(gr.sync_block):  # other base\
       \ classes are basic_block, decim_block, interp_block\n    \"\"\"Embedded Python\
-      \ Block example - a simple multiply const\"\"\"\n\n    def __init__(self, SampleRate\
+      \ Block example - a simple multiply const\"\"\"\n\n    def serial_ports(self):\n\
+      \    # ONLY for windows, and only 1 port expect\n        if sys.platform.startswith('win'):\
+      \  # windows\n            ports = [\"COM%s\" % (i + 1) for i in range(256)]\n\
+      \        else:\n            raise EnvironmentError('NOT WINDOWS PLATFORM')\n\
+      \n        for port in ports:  # i in COM1...COM256\n            try:\n     \
+      \           s = serial.Serial(port)\n                s.close()\n           \
+      \     result = port\n            except (OSError, serial.SerialException):\n\
+      \                pass\n        return result\n    \n    def __init__(self, SampleRate\
       \ = 1, SignalFreq=1, Gain=1, Rx1_Phase_Cal=1, Rx2_Phase_Cal=1, Rx3_Phase_Cal=1,\
       \ Rx4_Phase_Cal=1):  # only default arguments here\n        \"\"\"arguments\
       \ to this function show up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n\
@@ -196,9 +203,12 @@ blocks:
       \      )\n        # if an attribute with the same name as a parameter is found,\n\
       \        # a callback is registered (properties work, too).\n        # self.vnx\
       \ = cdll.LoadLibrary(r\"C:\\Users\\asbjo\\OneDrive\\Dokumenter\\AAU\\Asbj\xF8\
-      rns_gnu\\VNX_dps64.dll\")\n        \n        self.path = str(pathlib.Path().resolve())+\"\
-      \\VNX_dps64.dll\"\n        print(\"#####################path\")\n        print(self.path)\n\
-      \        #r\"C:\\Users\\emill\\OneDrive - Aalborg Universitet\\GIT2\\P5-EIT-AAU-512\\\
+      rns_gnu\\VNX_dps64.dll\")\n        \n        \n        # self.SerialObj = serial.Serial(self.serial_ports(),\
+      \ baudrate=115200, bytesize=8, parity='N', stopbits=1)\n        # time.sleep(1)\n\
+      \        \n        # self.peak_value_list = []\n        self.N=1024\n      \
+      \  \n\n        self.path = str(pathlib.Path().resolve())+\"\\VNX_dps64.dll\"\
+      \n        print(\"#####################path\")\n        print(self.path)\n \
+      \       #r\"C:\\Users\\emill\\OneDrive - Aalborg Universitet\\GIT2\\P5-EIT-AAU-512\\\
       SDR_testing\\VNX_dps64.dll\"\n        self.vnx = cdll.LoadLibrary(os.path.normpath(self.path))\
       \ #\n        \n        \n        self.vnx.fnLPS_SetTestMode(False)  # Use actual\
       \ devices\n        self.DeviceIDArray = c_int * 20\n        self.Devices = self.DeviceIDArray()\
@@ -234,22 +244,19 @@ blocks:
       \                case 24783:\n                    self.lookUp.update({2 : self.Devices[i]})\
       \  \n                case 24784: \n                    self.lookUp.update({3\
       \ : self.Devices[i]})\n        \n        #self.data = np.zeros((100),dtype=np.complex64)\n\
-      \    \n    def serial_ports(self):\n    # ONLY for windows, and only 1 port\
-      \ expect\n        if sys.platform.startswith('win'):  # windows\n          \
-      \  ports = [\"COM%s\" % (i + 1) for i in range(256)]\n        else:\n      \
-      \      raise EnvironmentError('NOT WINDOWS PLATFORM')\n\n        for port in\
-      \ ports:  # i in COM1...COM256\n            try:\n                s = serial.Serial(port)\n\
-      \                s.close()\n                result = port\n            except\
-      \ (OSError, serial.SerialException):\n                pass\n        return result\n\
-      \n    def work(self, input_items, output_items):\n        \"\"\"example: multiply\
-      \ with constant\"\"\"        \n        max_signal = -10000\n        max_angle\
-      \ = 0\n\n        win = np.hamming(self.numSamples) #window function\n\n    \
-      \    PhaseStepNumber = 0 \n        tSweep = time.time()\n        \n\n      \
-      \  for PhDelta in self.PhaseValues: #evry tick in the -180 -> 184\n\n      \
-      \      # RxPhase1 = (PhDelta*0+self.Rx1_Phase_Cal) % 360\n            # RxPhase2\
-      \ = (PhDelta*1+self.Rx2_Phase_Cal) % 360\n            # RxPhase3 = (PhDelta*2+self.Rx3_Phase_Cal)\
-      \ % 360\n            RxPhase4 = (PhDelta*3+self.Rx4_Phase_Cal) % 360 #the phase\
-      \ shift + offset % 360\n            # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[0],\
+      \    \n    \n\n    def find_local_maxima(self, arr):\n        local_maxima =\
+      \ []\n\n        for i in range(1, len(arr) - 1):\n            if arr[i] > arr[i\
+      \ - 1] and arr[i] > arr[i + 1]:\n                local_maxima.append(arr[i])\n\
+      \n        return local_maxima\n\n    \n\n\n    def work(self, input_items, output_items):\n\
+      \        \"\"\"example: multiply with constant\"\"\"        \n        max_signal\
+      \ = -10000\n        max_angle = 0\n\n        win = np.hamming(self.numSamples)\
+      \ #window function\n\n        PhaseStepNumber = 0 \n        tSweep = time.time()\n\
+      \        slice_value=3\n        peaks = [0] * (self.N-(2*slice_value))\n\n\n\
+      \        for PhDelta in self.PhaseValues: #evry tick in the -180 -> 184\n\n\
+      \            # RxPhase1 = (PhDelta*0+self.Rx1_Phase_Cal) % 360\n           \
+      \ # RxPhase2 = (PhDelta*1+self.Rx2_Phase_Cal) % 360\n            # RxPhase3\
+      \ = (PhDelta*2+self.Rx3_Phase_Cal) % 360\n            RxPhase4 = (PhDelta*3+self.Rx4_Phase_Cal)\
+      \ % 360 #the phase shift + offset % 360\n            # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[0],\
       \ int(RxPhase1))\n            # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[1],\
       \ int(RxPhase2))\n            # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[2],\
       \ int(RxPhase3))\n            tPhases = time.time()\n            self.vnx.fnLPS_SetPhaseAngle(self.lookUp[3],\
@@ -269,19 +276,27 @@ blocks:
       \    [0], # Receive on channel 0\n            self.Gain, # dB of RX gain\n \
       \           )\n            \n            # print(\"SDR TOTAL Sample time: \"\
       ,(time.time()-tSample)*1000, \"ms\")\n\n            y = data * win\n       \
-      \     sp = np.absolute(np.fft.fft(y,1024))\n            PeakValue = 20*np.log10(max(sp[0]))\n\
-      \n            if PeakValue > max_signal:\n                max_signal = PeakValue\n\
-      \                max_angle = SteerAngle\n\n            output_items[0][PhaseStepNumber]\
-      \ = ((1)*SteerAngle + (1j * PeakValue))\n            PhaseStepNumber = PhaseStepNumber\
-      \ + 1\n                 \n        print(\"Sweep time: \",(time.time()-tSweep)*1000,\
-      \ \"ms\")  \n        # serial_arduino = serial.Serial('COM20',baudrate=115200,bytesize=8,parity='N',stopbits=1)\n\
-      \        # time.sleep(2)\n        # serial_arduino.write(bytes(str(4),\"utf-8\"\
-      )) #needs \"\" insted of '' do to python mecanics\n\n        SerialObj = serial.Serial(self.serial_ports(),\
-      \ baudrate=115200, bytesize=8, parity='N', stopbits=1)\n    \n        # input()\n\
-      \        time.sleep(1.6)\n        SerialObj.write(bytes(str(180), \"utf-8\"\
-      ))  # Transmit input to Arduino\n        print(\"just sendt a 4\")\n       \
-      \ time.sleep(0.4)  # Optional delay to ensure data is sent before proceeding\n\
-      \        # SerialObj.close()\n\n\n        output_items[0] = output_items[0][0:PhaseStepNumber]\n\
+      \     \n            sp = np.absolute(np.fft.fft(y,self.N))\n            # sp[0]\
+      \ = sp[0][1:-1]\n            PeakValue = 20*np.log10(max(sp[0]))\n         \
+      \   # print(PeakValue)\n            threshold = -30\n            \n        \
+      \    \n            for index, spec in enumerate(sp[0][slice_value:-slice_value]):\n\
+      \                if 20*np.log10(spec) > threshold:\n                    freq=(index+slice_value)*(self.SampleRate/self.N)\n\
+      \                    amp=20*np.log10(spec)\n                    \n         \
+      \           if peaks[index] == 0:\n                        peaks[index] = [amp,\
+      \ 1]\n                    else:\n                        peaks[index]=[amp,\
+      \ peaks[index][1]+1]\n            \n            \n            \n           \
+      \ # self.peak_value_list.append(PeakValue)\n\n            if PeakValue > max_signal:\n\
+      \                max_signal = PeakValue\n                max_angle = SteerAngle\n\
+      \n            output_items[0][PhaseStepNumber] = ((1)*SteerAngle + (1j * PeakValue))\n\
+      \            PhaseStepNumber = PhaseStepNumber + 1\n        print(\"printing\
+      \ peaks\")\n        for i in peaks:\n            if i != 0:\n              \
+      \  print (i)         \n        print(\"Sweep time: \",(time.time()-tSweep)*1000,\
+      \ \"ms\")  \n       \n        # input_array = [1, 3, 7, 1, 2, 6, 4, 8, 9]\n\
+      \        # result = self.find_local_maxima(input_array)\n        # print(\"\
+      Local Maxima: \", result)\n\n        # self.SerialObj.write(bytes(str(max_angle),\
+      \ \"utf-8\"))  # Transmit input to Arduino\n        # print(\"just sendt a 4\"\
+      )\n        # time.sleep(0.4)  # Optional delay to ensure data is sent before\
+      \ proceeding\n        # SerialObj.close()\n\n\n        output_items[0] = output_items[0][0:PhaseStepNumber]\n\
       \        output_items[1][:] = max_angle\n        return len(output_items[0])"
     affinity: ''
     alias: ''

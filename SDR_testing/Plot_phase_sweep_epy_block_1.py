@@ -11,6 +11,7 @@ from gnuradio import gr
 import uhd
 import time 
 import serial
+import sys
 import pathlib
 import os
 """
@@ -27,6 +28,22 @@ TO TRY:
 class blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block
     """Embedded Python Block example - a simple multiply const"""
 
+    def serial_ports(self):
+    # ONLY for windows, and only 1 port expect
+        if sys.platform.startswith('win'):  # windows
+            ports = ["COM%s" % (i + 1) for i in range(256)]
+        else:
+            raise EnvironmentError('NOT WINDOWS PLATFORM')
+
+        for port in ports:  # i in COM1...COM256
+            try:
+                s = serial.Serial(port)
+                s.close()
+                result = port
+            except (OSError, serial.SerialException):
+                pass
+        return result
+    
     def __init__(self, SampleRate = 1, SignalFreq=1, Gain=1, Rx1_Phase_Cal=1, Rx2_Phase_Cal=1, Rx3_Phase_Cal=1, Rx4_Phase_Cal=1):  # only default arguments here
         """arguments to this function show up as parameters in GRC"""
         gr.sync_block.__init__(
@@ -39,6 +56,14 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         # a callback is registered (properties work, too).
         # self.vnx = cdll.LoadLibrary(r"C:\Users\asbjo\OneDrive\Dokumenter\AAU\Asbjørns_gnu\VNX_dps64.dll")
         
+        
+        # self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200, bytesize=8, parity='N', stopbits=1)
+        # time.sleep(1)
+        
+        # self.peak_value_list = []
+        self.N=1024
+        
+
         self.path = str(pathlib.Path().resolve())+"\VNX_dps64.dll"
         print("#####################path")
         print(self.path)
@@ -105,6 +130,20 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
                     self.lookUp.update({3 : self.Devices[i]})
         
         #self.data = np.zeros((100),dtype=np.complex64)
+    
+    
+
+    def find_local_maxima(self, arr):
+        local_maxima = []
+
+        for i in range(1, len(arr) - 1):
+            if arr[i] > arr[i - 1] and arr[i] > arr[i + 1]:
+                local_maxima.append(arr[i])
+
+        return local_maxima
+
+    
+
 
     def work(self, input_items, output_items):
         """example: multiply with constant"""        
@@ -115,7 +154,9 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
 
         PhaseStepNumber = 0 
         tSweep = time.time()
-        
+        slice_value=3
+        peaks = [0] * (self.N-(2*slice_value))
+
 
         for PhDelta in self.PhaseValues: #evry tick in the -180 -> 184
 
@@ -156,8 +197,27 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
             # print("SDR TOTAL Sample time: ",(time.time()-tSample)*1000, "ms")
 
             y = data * win
-            sp = np.absolute(np.fft.fft(y,1024))
+            
+            sp = np.absolute(np.fft.fft(y,self.N))
+            # sp[0] = sp[0][1:-1]
             PeakValue = 20*np.log10(max(sp[0]))
+            # print(PeakValue)
+            threshold = -30
+            
+            
+            for index, spec in enumerate(sp[0][slice_value:-slice_value]):
+                if 20*np.log10(spec) > threshold:
+                    freq=(index+slice_value)*(self.SampleRate/self.N)
+                    amp=20*np.log10(spec)
+                    
+                    if peaks[index] == 0:
+                        peaks[index] = [amp, 1]
+                    else:
+                        peaks[index]=[amp, peaks[index][1]+1]
+            
+            
+            
+            # self.peak_value_list.append(PeakValue)
 
             if PeakValue > max_signal:
                 max_signal = PeakValue
@@ -165,19 +225,19 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
 
             output_items[0][PhaseStepNumber] = ((1)*SteerAngle + (1j * PeakValue))
             PhaseStepNumber = PhaseStepNumber + 1
-                 
+        print("printing peaks")
+        for i in peaks:
+            if i != 0:
+                print (i)         
         print("Sweep time: ",(time.time()-tSweep)*1000, "ms")  
-        # serial_arduino = serial.Serial('COM20',baudrate=115200,bytesize=8,parity='N',stopbits=1)
-        # time.sleep(2)
-        # serial_arduino.write(bytes(str(4),"utf-8")) #needs "" insted of '' do to python mecanics
+       
+        # input_array = [1, 3, 7, 1, 2, 6, 4, 8, 9]
+        # result = self.find_local_maxima(input_array)
+        # print("Local Maxima: ", result)
 
-        SerialObj = serial.Serial('COM20', baudrate=115200, bytesize=8, parity='N', stopbits=1)
-    
-        # input()
-        time.sleep(1.6)
-        SerialObj.write(bytes(str(180), "utf-8"))  # Transmit input to Arduino
-        print("just sendt a 4")
-        time.sleep(0.4)  # Optional delay to ensure data is sent before proceeding
+        # self.SerialObj.write(bytes(str(max_angle), "utf-8"))  # Transmit input to Arduino
+        # print("just sendt a 4")
+        # time.sleep(0.4)  # Optional delay to ensure data is sent before proceeding
         # SerialObj.close()
 
 

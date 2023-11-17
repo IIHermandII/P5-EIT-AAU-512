@@ -64,7 +64,7 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = int(5e6)
+        self.samp_rate = samp_rate = int(20e6)
         self.Gain = Gain = 0
         self.Freq = Freq = int(2.4e9)
 
