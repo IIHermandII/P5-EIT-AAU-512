@@ -20,6 +20,8 @@ if exist "%doc_path_file%" (
     copy "%git_path_dll%" .
     echo file copyed you can now run Manual phase Control.grc
 )
-dir
+popd
+rem dir 
+call GNU_TEXTEDDITOR.bat
 
 
