@@ -203,26 +203,25 @@ blocks:
       \      )\n        # if an attribute with the same name as a parameter is found,\n\
       \        # a callback is registered (properties work, too).\n        # self.vnx\
       \ = cdll.LoadLibrary(r\"C:\\Users\\asbjo\\OneDrive\\Dokumenter\\AAU\\Asbj\xF8\
-      rns_gnu\\VNX_dps64.dll\")\n        \n        \n        # self.SerialObj = serial.Serial(self.serial_ports(),\
-      \ baudrate=115200, bytesize=8, parity='N', stopbits=1)\n        # time.sleep(1)\n\
-      \        \n        # self.peak_value_list = []\n        self.N=1024\n      \
-      \  \n\n        self.path = str(pathlib.Path().resolve())+\"\\VNX_dps64.dll\"\
-      \n        print(\"#####################path\")\n        print(self.path)\n \
-      \       #r\"C:\\Users\\emill\\OneDrive - Aalborg Universitet\\GIT2\\P5-EIT-AAU-512\\\
-      SDR_testing\\VNX_dps64.dll\"\n        self.vnx = cdll.LoadLibrary(os.path.normpath(self.path))\
-      \ #\n        \n        \n        self.vnx.fnLPS_SetTestMode(False)  # Use actual\
-      \ devices\n        self.DeviceIDArray = c_int * 20\n        self.Devices = self.DeviceIDArray()\
-      \  # This array will hold the list of device handles returned by the DLL\n\n\
-      \        print('------- Initialize Lab Bricks -------')\n        self.numDevices\
-      \ = self.vnx.fnLPS_GetNumDevices() # GetNumDevices will determine how many LPS\
-      \ devices are availible\n        print(str(self.numDevices), ' device(s) found')\n\
-      \n        # GetDevInfo generates a list, stored in the devices array, of\n \
-      \       # every availible LPS device attached to the system\n        # GetDevInfo\
-      \ will return the number of device handles in the array\n        dev_info =\
-      \ self.vnx.fnLPS_GetDevInfo(self.Devices)\n        print('GetDevInfo returned',\
-      \ str(dev_info))\n        self.ser_num = []\n        # GetSerialNumber will\
-      \ return the devices serial number\n        for i in range(self.numDevices):\n\
-      \            self.ser_num.append(self.vnx.fnLPS_GetSerialNumber(self.Devices[i]))\n\
+      rns_gnu\\VNX_dps64.dll\")\n        \n        \n        self.SerialObj = serial.Serial(self.serial_ports(),\
+      \ baudrate=115200, bytesize=8, parity='N', stopbits=1)\n        \n        #\
+      \ self.peak_value_list = []\n        self.N=1024\n        \n\n        self.path\
+      \ = str(pathlib.Path().resolve())+\"\\VNX_dps64.dll\"\n        print(\"#####################path\"\
+      )\n        print(self.path)\n        #r\"C:\\Users\\emill\\OneDrive - Aalborg\
+      \ Universitet\\GIT2\\P5-EIT-AAU-512\\SDR_testing\\VNX_dps64.dll\"\n        self.vnx\
+      \ = cdll.LoadLibrary(os.path.normpath(self.path)) #\n        \n        \n  \
+      \      self.vnx.fnLPS_SetTestMode(False)  # Use actual devices\n        self.DeviceIDArray\
+      \ = c_int * 20\n        self.Devices = self.DeviceIDArray()  # This array will\
+      \ hold the list of device handles returned by the DLL\n\n        print('-------\
+      \ Initialize Lab Bricks -------')\n        self.numDevices = self.vnx.fnLPS_GetNumDevices()\
+      \ # GetNumDevices will determine how many LPS devices are availible\n      \
+      \  print(str(self.numDevices), ' device(s) found')\n\n        # GetDevInfo generates\
+      \ a list, stored in the devices array, of\n        # every availible LPS device\
+      \ attached to the system\n        # GetDevInfo will return the number of device\
+      \ handles in the array\n        dev_info = self.vnx.fnLPS_GetDevInfo(self.Devices)\n\
+      \        print('GetDevInfo returned', str(dev_info))\n        self.ser_num =\
+      \ []\n        # GetSerialNumber will return the devices serial number\n    \
+      \    for i in range(self.numDevices):\n            self.ser_num.append(self.vnx.fnLPS_GetSerialNumber(self.Devices[i]))\n\
       \            print('Serial number:', str(self.ser_num[i]))\n            init_dev\
       \ = self.vnx.fnLPS_InitDevice(self.Devices[i])  #InitDevice will prepare the\
       \ device for operation\n            print('InitDevice returned', str(init_dev))\n\
@@ -245,7 +244,7 @@ blocks:
       \  \n                case 24784: \n                    self.lookUp.update({3\
       \ : self.Devices[i]})\n        \n        #self.data = np.zeros((100),dtype=np.complex64)\n\
       \    \n    \n\n    def find_local_maxima(self, arr):\n        local_maxima =\
-      \ []\n\n        for i in range(1, len(arr) - 1):\n            if arr[i] > arr[i\
+      \ []\n        for i in range(1, len(arr) - 1):\n            if arr[i] > arr[i\
       \ - 1] and arr[i] > arr[i + 1]:\n                local_maxima.append(arr[i])\n\
       \n        return local_maxima\n\n    \n\n\n    def work(self, input_items, output_items):\n\
       \        \"\"\"example: multiply with constant\"\"\"        \n        max_signal\
@@ -278,22 +277,27 @@ blocks:
       ,(time.time()-tSample)*1000, \"ms\")\n\n            y = data * win\n       \
       \     \n            sp = np.absolute(np.fft.fft(y,self.N))\n            # sp[0]\
       \ = sp[0][1:-1]\n            PeakValue = 20*np.log10(max(sp[0]))\n         \
-      \   # print(PeakValue)\n            threshold = -30\n            \n        \
+      \   # print(PeakValue)\n            threshold = -40\n            \n        \
       \    \n            for index, spec in enumerate(sp[0][slice_value:-slice_value]):\n\
-      \                if 20*np.log10(spec) > threshold:\n                    freq=(index+slice_value)*(self.SampleRate/self.N)\n\
-      \                    amp=20*np.log10(spec)\n                    \n         \
-      \           if peaks[index] == 0:\n                        peaks[index] = [amp,\
-      \ 1]\n                    else:\n                        peaks[index]=[amp,\
-      \ peaks[index][1]+1]\n            \n            \n            \n           \
-      \ # self.peak_value_list.append(PeakValue)\n\n            if PeakValue > max_signal:\n\
-      \                max_signal = PeakValue\n                max_angle = SteerAngle\n\
-      \n            output_items[0][PhaseStepNumber] = ((1)*SteerAngle + (1j * PeakValue))\n\
-      \            PhaseStepNumber = PhaseStepNumber + 1\n        print(\"printing\
-      \ peaks\")\n        for i in peaks:\n            if i != 0:\n              \
-      \  print (i)         \n        print(\"Sweep time: \",(time.time()-tSweep)*1000,\
+      \                if 20*np.log10(spec) > threshold:\n                    # freq=(index+slice_value)*(self.SampleRate/self.N)\n\
+      \                    amp=round(20*np.log10(spec),2)\n                    \n\
+      \                    if peaks[index] == 0:\n                        peaks[index]\
+      \ = [amp]\n                    else:\n                        peaks[index].append(amp)\n\
+      \            \n            \n            \n            # self.peak_value_list.append(PeakValue)\n\
+      \n            if PeakValue > max_signal:\n                max_signal = PeakValue\n\
+      \                max_angle = SteerAngle\n\n            output_items[0][PhaseStepNumber]\
+      \ = ((1)*SteerAngle + (1j * PeakValue))\n            PhaseStepNumber = PhaseStepNumber\
+      \ + 1\n        print(\"printing peaks\")\n        peaks_without_zeros=[]\n \
+      \       for i in peaks:\n            if i!=0:\n                peaks_without_zeros.append(max(i))\n\
+      \n\n\n        local_max=self.find_local_maxima(peaks_without_zeros)\n      \
+      \  # for i,data in enumerate(peaks):\n        #     if data != 0:\n        #\
+      \         freq= (i+int(slice_value))*(self.SampleRate/self.N)/float(pow(10,6))\n\
+      \        #         # print (f\"At freq: {freq} = {data}\")\n               \
+      \ \n        #         print (f\"At freq: {freq} = {data}\")  \n        print(f\"\
+      {local_max}\")       \n        print(\"Sweep time: \",(time.time()-tSweep)*1000,\
       \ \"ms\")  \n       \n        # input_array = [1, 3, 7, 1, 2, 6, 4, 8, 9]\n\
       \        # result = self.find_local_maxima(input_array)\n        # print(\"\
-      Local Maxima: \", result)\n\n        # self.SerialObj.write(bytes(str(max_angle),\
+      Local Maxima: \", result)\n\n        self.SerialObj.write(bytes(str(round(max_angle)),\
       \ \"utf-8\"))  # Transmit input to Arduino\n        # print(\"just sendt a 4\"\
       )\n        # time.sleep(0.4)  # Optional delay to ensure data is sent before\
       \ proceeding\n        # SerialObj.close()\n\n\n        output_items[0] = output_items[0][0:PhaseStepNumber]\n\

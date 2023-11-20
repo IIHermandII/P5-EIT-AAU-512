@@ -57,8 +57,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         # self.vnx = cdll.LoadLibrary(r"C:\Users\asbjo\OneDrive\Dokumenter\AAU\Asbjørns_gnu\VNX_dps64.dll")
         
         
-        # self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200, bytesize=8, parity='N', stopbits=1)
-        # time.sleep(1)
+        self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200, bytesize=8, parity='N', stopbits=1)
         
         # self.peak_value_list = []
         self.N=1024
@@ -135,7 +134,6 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
 
     def find_local_maxima(self, arr):
         local_maxima = []
-
         for i in range(1, len(arr) - 1):
             if arr[i] > arr[i - 1] and arr[i] > arr[i + 1]:
                 local_maxima.append(arr[i])
@@ -202,18 +200,18 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
             # sp[0] = sp[0][1:-1]
             PeakValue = 20*np.log10(max(sp[0]))
             # print(PeakValue)
-            threshold = -30
+            threshold = -40
             
             
             for index, spec in enumerate(sp[0][slice_value:-slice_value]):
                 if 20*np.log10(spec) > threshold:
-                    freq=(index+slice_value)*(self.SampleRate/self.N)
-                    amp=20*np.log10(spec)
+                    # freq=(index+slice_value)*(self.SampleRate/self.N)
+                    amp=round(20*np.log10(spec),2)
                     
                     if peaks[index] == 0:
-                        peaks[index] = [amp, 1]
+                        peaks[index] = [amp]
                     else:
-                        peaks[index]=[amp, peaks[index][1]+1]
+                        peaks[index].append(amp)
             
             
             
@@ -226,16 +224,28 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
             output_items[0][PhaseStepNumber] = ((1)*SteerAngle + (1j * PeakValue))
             PhaseStepNumber = PhaseStepNumber + 1
         print("printing peaks")
+        peaks_without_zeros=[]
         for i in peaks:
-            if i != 0:
-                print (i)         
+            if i!=0:
+                peaks_without_zeros.append(max(i))
+
+
+
+        local_max=self.find_local_maxima(peaks_without_zeros)
+        # for i,data in enumerate(peaks):
+        #     if data != 0:
+        #         freq= (i+int(slice_value))*(self.SampleRate/self.N)/float(pow(10,6))
+        #         # print (f"At freq: {freq} = {data}")
+                
+        #         print (f"At freq: {freq} = {data}")  
+        print(f"{local_max}")       
         print("Sweep time: ",(time.time()-tSweep)*1000, "ms")  
        
         # input_array = [1, 3, 7, 1, 2, 6, 4, 8, 9]
         # result = self.find_local_maxima(input_array)
         # print("Local Maxima: ", result)
 
-        # self.SerialObj.write(bytes(str(max_angle), "utf-8"))  # Transmit input to Arduino
+        self.SerialObj.write(bytes(str(round(max_angle)), "utf-8"))  # Transmit input to Arduino
         # print("just sendt a 4")
         # time.sleep(0.4)  # Optional delay to ensure data is sent before proceeding
         # SerialObj.close()
