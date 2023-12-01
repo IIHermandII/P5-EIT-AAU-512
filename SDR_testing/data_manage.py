@@ -1,44 +1,63 @@
-import matplotlib.pyplot as plt
-import numpy as np
-from datetime import datetime
 import os
-from pathlib import Path
+from matplotlib import pyplot as plt
+import numpy as np
+from functools import reduce
 
-# # Get the current script's path
-# current_script = os.path.realpath(__file__)
-
-# # Extract the folder path from the script's path
-# current_folder = os.path.dirname(current_script)
-
-# # Construct the folder path for the data files
-# text_file_position = os.path.join(current_folder, "data_folder")
-
-# # Print the folder path
-# print(text_file_position)
-
-# # Construct the file name with date and time
-# date_time = datetime.now().strftime("%d %m %Y %H %M %S")
-# text_file = os.path.join(text_file_position, f"Steering_angles_{date_time}.txt")
-
-# # Print the full file path
-# print(text_file)
-
-# # Create the file
-# with open(os.path.normpath(text_file), "w") as f:
-#     # Add content to the file if needed
-#     f.write("Your content goes here")
-
-current_folder = os.getcwd()
+current_folder = os.path.realpath(__file__).rstrip("data_manage.py")
 text_file_position = os.path.join(current_folder, "data_folder")
 
-# Create the data_folder if it doesn't exist
-if not os.path.exists(text_file_position):
-    os.makedirs(text_file_position)
+print("Current working directory:", current_folder)
+print("Text file position:", text_file_position)
+biggest_numb = 0
+newest_file =""
+for path, subdirs, files in os.walk(text_file_position):
+    print("Walking through:", path)
+    for name in files:
+        # print("Found file:", os.path.join(path, name))
+        new_filename = name.split("_", 2)[2].rstrip(".txt")
+        big_numb = new_filename.replace(" ", "")
+        if int(big_numb) > biggest_numb:
+            biggest_numb = int(big_numb)
+            newest_file = text_file_position + "\\" + name
 
-date_time = datetime.now().strftime("%d %m %Y %H %M %S")
-text_file = os.path.join(text_file_position, f"Steering_angles_{date_time}.txt")
-print(text_file)
-# Write content to the file
-with open(os.path.normpath(text_file), "w") as f:
-    f.write("Your content goes here")
+print(biggest_numb)
+print(newest_file)
+f = open(newest_file, 'r')
+filecontaint = f.read()
+# print(filecontaint)
 
+numbers_a = []
+numbers_s = []
+with open(newest_file, 'r') as file:
+    # Iterate over each line in the file
+    count = 1
+    for line in file:
+        
+        # Process each line as needed
+        if count == 6:
+            word = ""  # Initialize an empty string to store the number
+            numbers_a = []  # List to store extracted numbers
+            for character in line:
+                if character == ",":
+                    print(word)
+                    numbers_a.append(float(word))  # Convert the extracted word to a float and append to the list
+                    word = ""  # Reset the word for the next number
+                else:
+                    word += character  # Concatenate the character to the current word
+                
+        if count == 9:
+            word = ""  # Initialize an empty string to store the number
+            numbers_s = []  # List to store extracted numbers
+            for character in line:
+                if character == ",":
+                    print(word)
+                    numbers_s.append(float(word))  # Convert the extracted word to a float and append to the list
+                    word = ""  # Reset the word for the next number
+                else:
+                    word += character  # Concatenate the character to the current word
+        count += 1
+print("###################")
+print(len(numbers_a))
+print(numbers_a)
+print(len(numbers_s))
+print(numbers_s)
