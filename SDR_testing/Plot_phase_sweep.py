@@ -65,8 +65,8 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.samp_rate = samp_rate = int(20e6)
-        self.Gain = Gain = 0
-        self.Freq = Freq = int(2.4e9)
+        self.Gain = Gain = 80
+        self.Freq = Freq = int(2.44e9)
 
         ##################################################
         # Blocks
@@ -83,14 +83,14 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
             self.top_grid_layout.setRowStretch(r, 1)
         for c in range(0, 1):
             self.top_grid_layout.setColumnStretch(c, 1)
-        self._Gain_range = Range(0, 80, 1, 0, 200)
+        self._Gain_range = Range(0, 80, 1, 80, 200)
         self._Gain_win = RangeWidget(self._Gain_range, self.set_Gain, "'Gain'", "counter_slider", int, QtCore.Qt.Horizontal)
         self.Tabs_grid_layout_0.addWidget(self._Gain_win, 1, 0, 1, 1)
         for r in range(1, 2):
             self.Tabs_grid_layout_0.setRowStretch(r, 1)
         for c in range(0, 1):
             self.Tabs_grid_layout_0.setColumnStretch(c, 1)
-        self._Freq_range = Range(int(2.4e9), int(2.48e9), int(1e6), int(2.4e9), 200)
+        self._Freq_range = Range(int(2.4e9), int(2.48e9), int(1e6), int(2.44e9), 200)
         self._Freq_win = RangeWidget(self._Freq_range, self.set_Freq, "'Freq'", "counter_slider", int, QtCore.Qt.Horizontal)
         self.Tabs_grid_layout_0.addWidget(self._Freq_win, 0, 0, 1, 1)
         for r in range(0, 1):
@@ -141,8 +141,8 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
             None # parent
         )
         self.qtgui_const_sink_x_0.set_update_time(0.10)
-        self.qtgui_const_sink_x_0.set_y_axis((-50), 10)
-        self.qtgui_const_sink_x_0.set_x_axis((-90), 90)
+        self.qtgui_const_sink_x_0.set_y_axis((-100), 100)
+        self.qtgui_const_sink_x_0.set_x_axis((-51), 51)
         self.qtgui_const_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
         self.qtgui_const_sink_x_0.enable_autoscale(False)
         self.qtgui_const_sink_x_0.enable_grid(False)

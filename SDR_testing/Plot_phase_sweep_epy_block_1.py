@@ -101,7 +101,9 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
 
         self.sdr = uhd.usrp.MultiUSRP("type=b200")
         # self.sdr.set_rx_agc(True, 0) # 0 for channel 0, i.e. the first channel of the USRP
-         
+
+        self.angles = []
+
         # Making .txt file in data_folder with name = Steering_angle + date and time
         current_folder = os.getcwd()
         text_file_position = os.path.join(current_folder, "data_folder")
@@ -111,9 +113,13 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         self.text_file = os.path.join(text_file_position, f"Steering_angles_{date_time}.txt")
         print(self.text_file)
         with open(os.path.normpath(self.text_file), "w") as f:
-            f.write("Your content goes here")
+            f.write("")
         f.close()
         self.first_run = True
+        self.doa_text_file = os.path.join(text_file_position,f"DOA_{date_time}.txt")
+        with open(os.path.normpath(self.doa_text_file), "w") as f:
+            f.write("")
+        f.close()
 
         # Variables
         self.Rx1_Phase_Cal = Rx1_Phase_Cal  # phase off set
@@ -147,13 +153,13 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         return moving_averages
 
     def set_phase_shifters(self, PhDelta):
-        # RxPhase1 = (PhDelta*0+self.Rx1_Phase_Cal) % 360
-        # RxPhase2 = (PhDelta*1+self.Rx2_Phase_Cal) % 360
-        # RxPhase3 = (PhDelta*2+self.Rx3_Phase_Cal) % 360
+        RxPhase1 = (PhDelta*0+self.Rx1_Phase_Cal) % 360
+        RxPhase2 = (PhDelta*1+self.Rx2_Phase_Cal) % 360
+        RxPhase3 = (PhDelta*2+self.Rx3_Phase_Cal) % 360
         RxPhase4 = (PhDelta*3+self.Rx4_Phase_Cal) % 360  # the phase shift + offset % 360
-        # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[0], int(RxPhase1))
-        # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[1], int(RxPhase2))
-        # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[2], int(RxPhase3))
+        self.vnx.fnLPS_SetPhaseAngle(self.lookUp[0], int(RxPhase1))
+        self.vnx.fnLPS_SetPhaseAngle(self.lookUp[1], int(RxPhase2))
+        self.vnx.fnLPS_SetPhaseAngle(self.lookUp[2], int(RxPhase3))
         self.vnx.fnLPS_SetPhaseAngle(self.lookUp[3], int(RxPhase4))  # phaseshifter, phase
 
     def calculate_stearing_angle(self, PhDelta):
@@ -192,9 +198,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
                 # freq=((index+slice_value)*(self.SampleRate/self.numSamples)-self.SampleRate/2+self.SignalFreq)/pow(10,9)
                 amp = round(20*np.log10(spec), 2)
                 peaks.append([amp, index])  # eg  [-22dB, nr:77]
-                print("######################################################################")
-                print(peaks)
-        local_max = self.find_local_maxima(peaks)  # peaks([amplitude, index number],[amplitude, index number],[amplitude, index number],...,)
+                local_max = self.find_local_maxima(peaks)  # peaks([amplitude, index number],[amplitude, index number],[amplitude, index number],...,)
         return local_max
 
     def work(self, input_items, output_items):
@@ -210,11 +214,11 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
             steer_angle = self.calculate_stearing_angle(PhDelta)
             spectrum = self.fft_value(win)
             PeakValue = 20 * np.log10(max(spectrum[0]))
-            spectrum_shifted = np.fft.fftshift(spectrum[0][self.slice_value:-self.slice_value]) # fftshift(spectrum[0],[1:-1]) # shiftd both hafs of the fft and removes -1 and 1
-            local_max = self.multiple_sources(spectrum_shifted)
+            #spectrum_shifted = np.fft.fftshift(spectrum[0][self.slice_value:-self.slice_value]) # fftshift(spectrum[0],[1:-1]) # shiftd both hafs of the fft and removes -1 and 1
+            #local_max = self.multiple_sources(spectrum_shifted)
             
-            if local_max:
-                collected_max.append([PhaseStepNumber, local_max])
+            #if local_max:
+            #    collected_max.append([PhaseStepNumber, local_max])
 
             if PeakValue > max_signal:
                 max_signal = PeakValue
@@ -225,25 +229,30 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
 
         output_items[0] = output_items[0][:PhaseStepNumber]
 
-        steer_angle = []
-        Amplitude = []
+        #steer_angle = []
+        #Amplitude = []
         with open(self.text_file, "w") as f:
             f.write("__NEW__\n" )
             f.write(f"ST: {(time.time()-tSweep)*1000} ms\n")
             f.write(f"CM: {collected_max}\n")
-            f.write("A: \n")
-            f.write("LEN A LIST:" + str(len(np.real(output_items[0]))) + "\n")
+            f.write("S: \n")
+            f.write("LEN S LIST:" + str(len(np.real(output_items[0]))) + "\n")
             for angles in np.real(output_items[0]):
                 f.write(f"{angles}, ")
-                steer_angle.append(angles)
+                #steer_angle.append(angles)
             f.write("\n")
-            f.write("S: \n")
-            f.write("LEN S LIST:" + str(len(np.imag(output_items[0]))) + "\n")
+            f.write("A: \n")
+            f.write("LEN A LIST:" + str(len(np.imag(output_items[0]))) + "\n")
             for amp in np.imag(output_items[0]):
                 f.write(f"{amp}, ")
-                Amplitude.append(amp)
+                #Amplitude.append(amp)
             f.write("\n")
-
         
+        self.angles.append(max_angle)
+        with open(self.doa_text_file,"w") as f:
+            f.write("__DOA__\n")
+            for angles in self.angles:
+                f.write(f"{angles}, ")
+
         output_items[1][:] = max_angle
         return len(output_items[0])

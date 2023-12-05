@@ -45,7 +45,7 @@ blocks:
     start: int(2.4e9)
     step: int(1e6)
     stop: int(2.48e9)
-    value: int(2.4e9)
+    value: int(2.44e9)
     widget: counter_slider
   states:
     bus_sink: false
@@ -66,7 +66,7 @@ blocks:
     start: '0'
     step: '1'
     stop: '80'
-    value: '0'
+    value: '80'
     widget: counter_slider
   states:
     bus_sink: false
@@ -225,24 +225,26 @@ blocks:
       \                case 24783:\n                    self.lookUp.update({2: self.Devices[i]})\n\
       \                case 24784:\n                    self.lookUp.update({3: self.Devices[i]})\n\
       \n        self.sdr = uhd.usrp.MultiUSRP(\"type=b200\")\n        # self.sdr.set_rx_agc(True,\
-      \ 0) # 0 for channel 0, i.e. the first channel of the USRP\n         \n    \
-      \    # Making .txt file in data_folder with name = Steering_angle + date and\
-      \ time\n        current_folder = os.getcwd()\n        text_file_position = os.path.join(current_folder,\
-      \ \"data_folder\")\n        if not os.path.exists(text_file_position):\n   \
-      \         os.makedirs(text_file_position)\n        date_time = datetime.now().strftime(\"\
+      \ 0) # 0 for channel 0, i.e. the first channel of the USRP\n\n        self.angles\
+      \ = []\n\n        # Making .txt file in data_folder with name = Steering_angle\
+      \ + date and time\n        current_folder = os.getcwd()\n        text_file_position\
+      \ = os.path.join(current_folder, \"data_folder\")\n        if not os.path.exists(text_file_position):\n\
+      \            os.makedirs(text_file_position)\n        date_time = datetime.now().strftime(\"\
       %Y %m %d %H %M %S\")\n        self.text_file = os.path.join(text_file_position,\
       \ f\"Steering_angles_{date_time}.txt\")\n        print(self.text_file)\n   \
       \     with open(os.path.normpath(self.text_file), \"w\") as f:\n           \
-      \ f.write(\"Your content goes here\")\n        f.close()\n        self.first_run\
-      \ = True\n\n        # Variables\n        self.Rx1_Phase_Cal = Rx1_Phase_Cal\
-      \  # phase off set\n        self.Rx2_Phase_Cal = Rx2_Phase_Cal  # phase off\
-      \ set\n        self.Rx3_Phase_Cal = Rx3_Phase_Cal  # phase off set\n       \
-      \ self.Rx4_Phase_Cal = Rx4_Phase_Cal  # phase off set\n        self.SampleRate\
-      \ = SampleRate  # input\n        self.numSamples = 1024\n        self.Gain =\
-      \ Gain  # input\n        self.slice_value = 1\n        self.threshold = -25\n\
-      \n    def find_local_maxima(self, arr):  # self, peaks[amplitude, index number]\n\
-      \        local_maxima = []\n        avg_arr = self.moving_average(arr, 3)  #\
-      \  peaks[amplitude, index number], 3\n        for i in range(2, len(avg_arr)\
+      \ f.write(\"\")\n        f.close()\n        self.first_run = True\n        self.doa_text_file\
+      \ = os.path.join(text_file_position,f\"DOA_{date_time}.txt\")\n        with\
+      \ open(os.path.normpath(self.doa_text_file), \"w\") as f:\n            f.write(\"\
+      \")\n        f.close()\n\n        # Variables\n        self.Rx1_Phase_Cal =\
+      \ Rx1_Phase_Cal  # phase off set\n        self.Rx2_Phase_Cal = Rx2_Phase_Cal\
+      \  # phase off set\n        self.Rx3_Phase_Cal = Rx3_Phase_Cal  # phase off\
+      \ set\n        self.Rx4_Phase_Cal = Rx4_Phase_Cal  # phase off set\n       \
+      \ self.SampleRate = SampleRate  # input\n        self.numSamples = 1024\n  \
+      \      self.Gain = Gain  # input\n        self.slice_value = 1\n        self.threshold\
+      \ = -25\n\n    def find_local_maxima(self, arr):  # self, peaks[amplitude, index\
+      \ number]\n        local_maxima = []\n        avg_arr = self.moving_average(arr,\
+      \ 3)  #  peaks[amplitude, index number], 3\n        for i in range(2, len(avg_arr)\
       \ - 2):  \n            if avg_arr[i][0] > avg_arr[i - 1][0] and avg_arr[i][0]\
       \ > avg_arr[i + 1][0]:\n                local_maxima.append(avg_arr[i][1]) \
       \ \n        return local_maxima\n\n    def moving_average(self, arr, window_size):\
@@ -254,16 +256,15 @@ blocks:
       \ / window_size, 2)  # Average sum of amplitudes in the window(3) rounded to\
       \ 2 decimals\n            moving_averages.append([window_average, arr[i][1]])\
       \ # The average window amplitude pr. index\n            i += 1\n        return\
-      \ moving_averages\n\n    def set_phase_shifters(self, PhDelta):\n        # RxPhase1\
-      \ = (PhDelta*0+self.Rx1_Phase_Cal) % 360\n        # RxPhase2 = (PhDelta*1+self.Rx2_Phase_Cal)\
-      \ % 360\n        # RxPhase3 = (PhDelta*2+self.Rx3_Phase_Cal) % 360\n       \
-      \ RxPhase4 = (PhDelta*3+self.Rx4_Phase_Cal) % 360  # the phase shift + offset\
-      \ % 360\n        # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[0], int(RxPhase1))\n\
-      \        # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[1], int(RxPhase2))\n   \
-      \     # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[2], int(RxPhase3))\n      \
-      \  self.vnx.fnLPS_SetPhaseAngle(self.lookUp[3], int(RxPhase4))  # phaseshifter,\
-      \ phase\n\n    def calculate_stearing_angle(self, PhDelta):\n        value1\
-      \ = (self.c * np.radians(np.abs(PhDelta)))/(2*np.pi*self.SignalFreq*self.d)\
+      \ moving_averages\n\n    def set_phase_shifters(self, PhDelta):\n        RxPhase1\
+      \ = (PhDelta*0+self.Rx1_Phase_Cal) % 360\n        RxPhase2 = (PhDelta*1+self.Rx2_Phase_Cal)\
+      \ % 360\n        RxPhase3 = (PhDelta*2+self.Rx3_Phase_Cal) % 360\n        RxPhase4\
+      \ = (PhDelta*3+self.Rx4_Phase_Cal) % 360  # the phase shift + offset % 360\n\
+      \        self.vnx.fnLPS_SetPhaseAngle(self.lookUp[0], int(RxPhase1))\n     \
+      \   self.vnx.fnLPS_SetPhaseAngle(self.lookUp[1], int(RxPhase2))\n        self.vnx.fnLPS_SetPhaseAngle(self.lookUp[2],\
+      \ int(RxPhase3))\n        self.vnx.fnLPS_SetPhaseAngle(self.lookUp[3], int(RxPhase4))\
+      \  # phaseshifter, phase\n\n    def calculate_stearing_angle(self, PhDelta):\n\
+      \        value1 = (self.c * np.radians(np.abs(PhDelta)))/(2*np.pi*self.SignalFreq*self.d)\
       \ # value1 = c * |ang| / 2 * pi * f * d\n        clamped_value1 = max(min(1,\
       \ value1), -1)  # clam\xE5ing value1 between -1 and 1 \n        theta = np.degrees(np.arcsin(clamped_value1))\
       \ # theta = arssin(clamped_value1)\n\n        error_func = 0.0000002045*theta**4+0.00295*theta**2+2\
@@ -290,26 +291,29 @@ blocks:
       \        collected_max = []\n\n        for PhDelta in self.PhaseValues:\n  \
       \          self.set_phase_shifters(PhDelta) #Sets phase\n            steer_angle\
       \ = self.calculate_stearing_angle(PhDelta)\n            spectrum = self.fft_value(win)\n\
-      \            PeakValue = 20 * np.log10(max(spectrum[0]))\n            spectrum_shifted\
+      \            PeakValue = 20 * np.log10(max(spectrum[0]))\n            #spectrum_shifted\
       \ = np.fft.fftshift(spectrum[0][self.slice_value:-self.slice_value]) # fftshift(spectrum[0],[1:-1])\
-      \ # shiftd both hafs of the fft and removes -1 and 1\n            local_max\
-      \ = self.multiple_sources(spectrum_shifted)\n            \n            if local_max:\n\
-      \                collected_max.append([PhaseStepNumber, local_max])\n\n    \
-      \        if PeakValue > max_signal:\n                max_signal = PeakValue\n\
+      \ # shiftd both hafs of the fft and removes -1 and 1\n            #local_max\
+      \ = self.multiple_sources(spectrum_shifted)\n            \n            #if local_max:\n\
+      \            #    collected_max.append([PhaseStepNumber, local_max])\n\n   \
+      \         if PeakValue > max_signal:\n                max_signal = PeakValue\n\
       \                max_angle = steer_angle\n\n            output_items[0][PhaseStepNumber]\
       \ = ((1) * steer_angle + (1j * PeakValue))\n            PhaseStepNumber += 1\n\
-      \n        output_items[0] = output_items[0][:PhaseStepNumber]\n\n        steer_angle\
-      \ = []\n        Amplitude = []\n        with open(self.text_file, \"w\") as\
+      \n        output_items[0] = output_items[0][:PhaseStepNumber]\n\n        #steer_angle\
+      \ = []\n        #Amplitude = []\n        with open(self.text_file, \"w\") as\
       \ f:\n            f.write(\"__NEW__\\n\" )\n            f.write(f\"ST: {(time.time()-tSweep)*1000}\
       \ ms\\n\")\n            f.write(f\"CM: {collected_max}\\n\")\n            f.write(\"\
-      A: \\n\")\n            f.write(\"LEN A LIST:\" + str(len(np.real(output_items[0])))\
+      S: \\n\")\n            f.write(\"LEN S LIST:\" + str(len(np.real(output_items[0])))\
       \ + \"\\n\")\n            for angles in np.real(output_items[0]):\n        \
-      \        f.write(f\"{angles}, \")\n                steer_angle.append(angles)\n\
-      \            f.write(\"\\n\")\n            f.write(\"S: \\n\")\n           \
-      \ f.write(\"LEN S LIST:\" + str(len(np.imag(output_items[0]))) + \"\\n\")\n\
+      \        f.write(f\"{angles}, \")\n                #steer_angle.append(angles)\n\
+      \            f.write(\"\\n\")\n            f.write(\"A: \\n\")\n           \
+      \ f.write(\"LEN A LIST:\" + str(len(np.imag(output_items[0]))) + \"\\n\")\n\
       \            for amp in np.imag(output_items[0]):\n                f.write(f\"\
-      {amp}, \")\n                Amplitude.append(amp)\n            f.write(\"\\\
-      n\")\n\n        \n        output_items[1][:] = max_angle\n        return len(output_items[0])\n"
+      {amp}, \")\n                #Amplitude.append(amp)\n            f.write(\"\\\
+      n\")\n        \n        self.angles.append(max_angle)\n        with open(self.doa_text_file,\"\
+      w\") as f:\n            f.write(\"__DOA__\\n\")\n            for angles in self.angles:\n\
+      \                f.write(f\"{angles}, \")\n\n        output_items[1][:] = max_angle\n\
+      \        return len(output_items[0])\n"
     affinity: ''
     alias: ''
     comment: ''
@@ -408,10 +412,10 @@ blocks:
     width7: '1'
     width8: '1'
     width9: '1'
-    xmax: '90'
-    xmin: '-90'
-    ymax: '10'
-    ymin: '-50'
+    xmax: '51'
+    xmin: '-51'
+    ymax: '100'
+    ymin: '-100'
   states:
     bus_sink: false
     bus_source: false
