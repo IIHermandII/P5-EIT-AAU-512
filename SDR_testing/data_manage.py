@@ -61,3 +61,18 @@ print(len(numbers_a))
 print(numbers_a)
 print(len(numbers_s))
 print(numbers_s)
+
+
+
+# plt.plot(numbers_s,numbers_a)
+# plt.title("dick shit")
+plt.plot(numbers_a, numbers_s, marker='o', linestyle='', color='b')
+
+# Adding labels and title
+plt.xlabel('X-axis')
+plt.ylabel('Y-axis')
+plt.title('Plot of X and Y')
+
+# Display the plot
+plt.show()
+
