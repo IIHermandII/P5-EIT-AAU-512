@@ -127,11 +127,11 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    length: '1000'
+    length: '3000'
     max_iter: samp_rate
     maxoutbuf: '0'
     minoutbuf: '0'
-    scale: 1/1000
+    scale: 1/3000
     type: float
     vlen: '1'
   states:
@@ -216,7 +216,7 @@ blocks:
       \        print('---------- End initialize -----------')\n\n        self.c =\
       \ 3e8\n        self.SignalFreq = SignalFreq  # input\n        self.d = 1/2*(self.c/self.SignalFreq)\
       \  # d = (1/2) * (3e8/2.4e9)\n        self.PhaseStep = 4\n        self.PhaseValues\
-      \ = np.arange(-180, 184, self.PhaseStep)  # finds number of steps\n\n      \
+      \ = np.arange(-156, 160, self.PhaseStep)  # finds number of steps\n\n      \
       \  for i in range(self.numDevices):\n            self.vnx.fnLPS_SetWorkingFrequency(self.Devices[i],\
       \ int(self.SignalFreq / 100000))\n\n        self.lookUp = {}\n\n        for\
       \ i in range(self.numDevices):\n            match self.ser_num[i]:\n       \
@@ -267,21 +267,22 @@ blocks:
       \        value1 = (self.c * np.radians(np.abs(PhDelta)))/(2*np.pi*self.SignalFreq*self.d)\
       \ # value1 = c * |ang| / 2 * pi * f * d\n        clamped_value1 = max(min(1,\
       \ value1), -1)  # clam\xE5ing value1 between -1 and 1 \n        theta = np.degrees(np.arcsin(clamped_value1))\
-      \ # theta = arssin(clamped_value1)\n\n        error_func = 0.0000002045*theta**4+0.00295*theta**2+2\
-      \  # the theta does not macth theta irl for that error_func\n        theta -=\
-      \ error_func\n        if PhDelta >= 0:\n            Steer_angle = theta   #\
-      \ positive PhaseDelta covers 0 deg to 90 deg\n        else:\n            Steer_angle\
-      \ = -theta   # negative phase delta covers 0 deg to -90 deg\n        return\
-      \ Steer_angle\n\n    def fft_value(self, win):\n        # Get samples of data\n\
-      \        data = self.sdr.recv_num_samps(  # uhd.usrp.MultiUSRP b200\n      \
-      \      self.numSamples,  # Number of samples\n            self.SignalFreq, \
-      \ # Frequency in Hz\n            self.SampleRate,  # Sampling rate\n       \
-      \     [0],  # Receive on channel 0\n            self.Gain,  # dB of RX gain\n\
-      \        )\n\n        y = data * win\n        spectrum = np.absolute(np.fft.fft(y,\
-      \ self.numSamples))\n        return spectrum\n\n    def multiple_sources(self,\
-      \ sp_shifted):\n        index = 0\n        peaks = []\n        for spec in sp_shifted:\n\
-      \            index += 1 # number of fft values (1022)\n            if 20*np.log10(spec)\
-      \ > self.threshold: #  > -25 dB\n                # freq=((index+slice_value)*(self.SampleRate/self.numSamples)-self.SampleRate/2+self.SignalFreq)/pow(10,9)\n\
+      \ # theta = arssin(clamped_value1)\n\n        #error_func = 0.0000002045*theta**4+0.00295*theta**2+2\
+      \  # the theta does not macth theta irl for that error_func\n        #theta\
+      \ -= error_func\n        theta = 0.9425*theta + 0.154\n        if PhDelta >=\
+      \ 0:\n            Steer_angle = theta   # positive PhaseDelta covers 0 deg to\
+      \ 90 deg\n        else:\n            Steer_angle = -theta   # negative phase\
+      \ delta covers 0 deg to -90 deg\n        return Steer_angle\n\n    def fft_value(self,\
+      \ win):\n        # Get samples of data\n        data = self.sdr.recv_num_samps(\
+      \  # uhd.usrp.MultiUSRP b200\n            self.numSamples,  # Number of samples\n\
+      \            self.SignalFreq,  # Frequency in Hz\n            self.SampleRate,\
+      \  # Sampling rate\n            [0],  # Receive on channel 0\n            self.Gain,\
+      \  # dB of RX gain\n        )\n\n        y = data * win\n        spectrum =\
+      \ np.absolute(np.fft.fft(y, self.numSamples))\n        return spectrum\n\n \
+      \   def multiple_sources(self, sp_shifted):\n        index = 0\n        peaks\
+      \ = []\n        for spec in sp_shifted:\n            index += 1 # number of\
+      \ fft values (1022)\n            if 20*np.log10(spec) > self.threshold: #  >\
+      \ -25 dB\n                # freq=((index+slice_value)*(self.SampleRate/self.numSamples)-self.SampleRate/2+self.SignalFreq)/pow(10,9)\n\
       \                amp = round(20*np.log10(spec), 2)\n                peaks.append([amp,\
       \ index])  # eg  [-22dB, nr:77]\n                local_max = self.find_local_maxima(peaks)\
       \  # peaks([amplitude, index number],[amplitude, index number],[amplitude, index\
@@ -384,7 +385,7 @@ blocks:
     marker9: '0'
     name: '""'
     nconnections: '1'
-    size: '91'
+    size: '79'
     style1: '0'
     style10: '0'
     style2: '0'
@@ -412,8 +413,8 @@ blocks:
     width7: '1'
     width8: '1'
     width9: '1'
-    xmax: '51'
-    xmin: '-51'
+    xmax: '60'
+    xmin: '-60'
     ymax: '100'
     ymin: '-100'
   states:

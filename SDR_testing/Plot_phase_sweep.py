@@ -135,14 +135,14 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
         for c in range(0, 1):
             self.top_grid_layout.setColumnStretch(c, 1)
         self.qtgui_const_sink_x_0 = qtgui.const_sink_c(
-            91, #size
+            79, #size
             "", #name
             1, #number of inputs
             None # parent
         )
         self.qtgui_const_sink_x_0.set_update_time(0.10)
         self.qtgui_const_sink_x_0.set_y_axis((-100), 100)
-        self.qtgui_const_sink_x_0.set_x_axis((-51), 51)
+        self.qtgui_const_sink_x_0.set_x_axis((-60), 60)
         self.qtgui_const_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
         self.qtgui_const_sink_x_0.enable_autoscale(False)
         self.qtgui_const_sink_x_0.enable_grid(False)
@@ -181,7 +181,7 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
             self.top_grid_layout.setColumnStretch(c, 1)
         self.epy_block_1 = epy_block_1.blk(SampleRate=samp_rate, SignalFreq=Freq, Gain=Gain, Rx1_Phase_Cal=0, Rx2_Phase_Cal=31, Rx3_Phase_Cal=355, Rx4_Phase_Cal=20)
         self.blocks_throttle2_0 = blocks.throttle( gr.sizeof_float*1, samp_rate, True, 0 if "auto" == "auto" else max( int(float(0.1) * samp_rate) if "auto" == "time" else int(0.1), 1) )
-        self.blocks_moving_average_xx_0 = blocks.moving_average_ff(1000, (1/1000), samp_rate, 1)
+        self.blocks_moving_average_xx_0 = blocks.moving_average_ff(3000, (1/3000), samp_rate, 1)
 
 
         ##################################################

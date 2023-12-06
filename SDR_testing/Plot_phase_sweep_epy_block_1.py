@@ -81,7 +81,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         self.SignalFreq = SignalFreq  # input
         self.d = 1/2*(self.c/self.SignalFreq)  # d = (1/2) * (3e8/2.4e9)
         self.PhaseStep = 4
-        self.PhaseValues = np.arange(-180, 184, self.PhaseStep)  # finds number of steps
+        self.PhaseValues = np.arange(-156, 160, self.PhaseStep)  # finds number of steps
 
         for i in range(self.numDevices):
             self.vnx.fnLPS_SetWorkingFrequency(self.Devices[i], int(self.SignalFreq / 100000))
@@ -167,8 +167,9 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         clamped_value1 = max(min(1, value1), -1)  # clamåing value1 between -1 and 1 
         theta = np.degrees(np.arcsin(clamped_value1)) # theta = arssin(clamped_value1)
 
-        error_func = 0.0000002045*theta**4+0.00295*theta**2+2  # the theta does not macth theta irl for that error_func
-        theta -= error_func
+        #error_func = 0.0000002045*theta**4+0.00295*theta**2+2  # the theta does not macth theta irl for that error_func
+        #theta -= error_func
+        theta = 0.9425*theta + 0.154
         if PhDelta >= 0:
             Steer_angle = theta   # positive PhaseDelta covers 0 deg to 90 deg
         else:
