@@ -2,7 +2,7 @@
 
 // Define PID constants
 float Kp = 10;
-float Ki = 0.7;
+float Ki = 3;
 float Kd = 0;
 
 // Define variables
@@ -43,6 +43,8 @@ void encoder_counter (){
       encoder_count = counts_per_rotation;
     }
     encoder_count --;
+    // I -= 5;
+    I = 0;
   }
   else{
     //Counter clockwise
@@ -51,6 +53,8 @@ void encoder_counter (){
       encoder_count = 0;
     }
     encoder_count ++;
+    // I +=5;
+    I = 0;
   }  
 }
 
@@ -145,42 +149,53 @@ void setup() {
 void loop() {
   time = millis();
   serial_read();
-  if (time - last_time > periode) {
-    step ++;
-    //target += 10;
+  // if (time - last_time > periode) {
+  //   step ++;
+  //   //target += 10;
 
-    // if (step==100){ 
-    //   target=70;
-    //   Serial.print("encoder count: ");
-    //   Serial.println(input);
-    //   Serial.print("target: ");
-    //   Serial.println(target);
+  //   if (step==500){ 
+  //     target=70;
+  //     // Serial.print("encoder count: ");
+  //     // Serial.println(input);
+  //     // Serial.print("target: ");
+  //     // Serial.println(target);
+  //   }
+  //   if (step > 1000){
+  //     target = 0;
+  //     step = 0;
+  //   }
+    
+  input = encoder_count;
+  error_calc(input,target);
+  
+  static float P;
+  static float D;
+
+  P = Kp * error;
+  I += Ki * error;
+  I = anti_windup(I,50);
+  D = Kd * (error - last_error);    
+
+    // if (abs(error) < 1 && (error - last_error)<2){
+    //   output = 0;
+    //   I = 0;
+    //   Serial.print("STILL");
     // }
-    if (step > 177){
-      //target = 0;
-      step = 0;
-    }
+    // else{
+    //   output = P + I + D;
+    // }
     
-    input = encoder_count;
-    error_calc(input,target);
-    
-    static float P;
-    static float D;
-
-    P = Kp * error;
-    I += Ki * error;
-    I = anti_windup(I,10);
-    D = Kd * (error - last_error);    
-    
-    output = P + I + D;
+  output = P + I + D;
     // Serial.print("P, I, D : ");
     // Serial.print(P);
     // Serial.print(" ");
     // Serial.print(I);
     // Serial.print(" ");
     // Serial.println(D);
-    control_actuator(output);
-    last_error = error;
-    last_time=time;
-  }
+    // Serial.print("Error: ");
+    // Serial.println(error);
+  control_actuator(output);
+  last_error = error;
+  last_time=time;
+  
 }
