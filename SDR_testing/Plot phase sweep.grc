@@ -193,7 +193,7 @@ blocks:
       \ up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n         \
       \   self,\n            name='Angle sweeper',  # will show up in GRC\n      \
       \      in_sig=[],\n            out_sig=[np.complex64, np.float32]\n        )\n\
-      \        # Initialize arduino communication\n        # self.SerialObj = serial.Serial(self.serial_ports(),\
+      \        # Initialize arduino communication\n        self.SerialObj = serial.Serial(self.serial_ports(),\
       \ baudrate=115200, bytesize=8, parity='N', stopbits=1)\n\n        # Setup off\
       \ phaseshifters\n        self.path = str(pathlib.Path().resolve()) + \"\\VNX_dps64.dll\"\
       \n        print(\"--- Path ---\")\n        print(self.path)\n        self.vnx\
@@ -300,13 +300,15 @@ blocks:
       \         if PeakValue > max_signal:\n                max_signal = PeakValue\n\
       \                max_angle = steer_angle\n\n            output_items[0][PhaseStepNumber]\
       \ = ((1) * steer_angle + (1j * PeakValue))\n            PhaseStepNumber += 1\n\
-      \n        output_items[0] = output_items[0][:PhaseStepNumber]\n\n        #steer_angle\
-      \ = []\n        #Amplitude = []\n        with open(self.text_file, \"w\") as\
-      \ f:\n            f.write(\"__NEW__\\n\" )\n            f.write(f\"ST: {(time.time()-tSweep)*1000}\
-      \ ms\\n\")\n            f.write(f\"CM: {collected_max}\\n\")\n            f.write(\"\
-      S: \\n\")\n            f.write(\"LEN S LIST:\" + str(len(np.real(output_items[0])))\
-      \ + \"\\n\")\n            for angles in np.real(output_items[0]):\n        \
-      \        f.write(f\"{angles}, \")\n                #steer_angle.append(angles)\n\
+      \n        output_items[0] = output_items[0][:PhaseStepNumber]\n\n\n        time.sleep(2)\n\
+      \        print(\"just sendt \" + str(int(max_angle)))\n        self.SerialObj.write(bytes(str(int(max_angle)),\
+      \ \"utf-8\"))  # Transmit input to Arduino\n        \n        time.sleep(2)\n\
+      \n        #steer_angle = []\n        #Amplitude = []\n        with open(self.text_file,\
+      \ \"w\") as f:\n            f.write(\"__NEW__\\n\" )\n            f.write(f\"\
+      ST: {(time.time()-tSweep)*1000} ms\\n\")\n            f.write(f\"CM: {collected_max}\\\
+      n\")\n            f.write(\"S: \\n\")\n            f.write(\"LEN S LIST:\" +\
+      \ str(len(np.real(output_items[0]))) + \"\\n\")\n            for angles in np.real(output_items[0]):\n\
+      \                f.write(f\"{angles}, \")\n                #steer_angle.append(angles)\n\
       \            f.write(\"\\n\")\n            f.write(\"A: \\n\")\n           \
       \ f.write(\"LEN A LIST:\" + str(len(np.imag(output_items[0]))) + \"\\n\")\n\
       \            for amp in np.imag(output_items[0]):\n                f.write(f\"\
