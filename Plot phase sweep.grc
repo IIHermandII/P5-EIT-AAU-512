@@ -51,7 +51,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [456, 16.0]
+    coordinate: [480, 8.0]
     rotation: 0
     state: true
 - name: Gain
@@ -72,19 +72,19 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [320, 12.0]
+    coordinate: [280, 8.0]
     rotation: 0
     state: true
 - name: samp_rate
   id: variable
   parameters:
     comment: ''
-    value: int(5e6)
+    value: int(20e6)
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [208, 8.0]
+    coordinate: [720, 20.0]
     rotation: 0
     state: enabled
 - name: Tabs
@@ -118,7 +118,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 112.0]
+    coordinate: [984, 40.0]
     rotation: 0
     state: true
 - name: blocks_moving_average_xx_0
@@ -138,7 +138,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [696, 284.0]
+    coordinate: [696, 420.0]
     rotation: 0
     state: true
 - name: blocks_throttle2_0
@@ -159,7 +159,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [464, 304.0]
+    coordinate: [384, 436.0]
     rotation: 0
     state: true
 - name: epy_block_1
@@ -174,91 +174,118 @@ blocks:
     SignalFreq: Freq
     _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
       \ GRC will instantiate the first class it finds\nto get ports and parameters\
-      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
-      \ them are required to have default values!\n\"\"\"\nfrom ctypes import *\n\
-      import numpy as np\nfrom gnuradio import gr\nimport uhd\nimport time \n\n\"\"\
-      \"\nTO TRY:\n-Ny USB HUB / gav 1ms\n-Skrive til en enkelt enhed / stadig langsomt\n\
-      -Unders\xF8ge om der er et usb handle som fucker up - det virker jo til set\
-      \ frequency og s\xE5 ikke til set phase - og phase er endda en mindre besked\
-      \ end frequency / PAS\n-Sende besked sammen med s\xE6t working frequency / gav\
-      \ 10ms delay pr. besked\n-S\xE6t working frequency sammen i main loopet / 40ms\
-      \ delay - 10 pr enhed\n-Pr\xF8v at lade streamhandle ligge i Multi klassen og\
-      \ kun generere et nyt hvis det et None\n-Evt. sk\xE6r ned p\xE5 buffer for at\
-      \ det ikke tager l\xE6ngere tid end h\xF8jst n\xF8dvendigt i Recv_num\n\"\"\"\
-      \n\nclass blk(gr.sync_block):  # other base classes are basic_block, decim_block,\
-      \ interp_block\n    \"\"\"Embedded Python Block example - a simple multiply\
-      \ const\"\"\"\n\n    def __init__(self, SampleRate = 1, SignalFreq=1, Gain=1,\
-      \ Rx1_Phase_Cal=1, Rx2_Phase_Cal=1, Rx3_Phase_Cal=1, Rx4_Phase_Cal=1):  # only\
-      \ default arguments here\n        \"\"\"arguments to this function show up as\
-      \ parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n            self,\n\
-      \            name='Angle sweeper',   # will show up in GRC\n            in_sig=[],\n\
-      \            out_sig=[np.complex64, np.float32]\n        )\n        # if an\
-      \ attribute with the same name as a parameter is found,\n        # a callback\
-      \ is registered (properties work, too).\n        self.vnx = cdll.LoadLibrary(r\"\
-      C:\\Users\\julm\\Desktop\\Drone detection\\VNX_dps64.dll\")\n        self.vnx.fnLPS_SetTestMode(False)\
-      \        # Use actual devices\n        self.DeviceIDArray = c_int * 20\n   \
-      \     self.Devices = self.DeviceIDArray()           # This array will hold the\
-      \ list of device handles returned by the DLL\n\n        print('------- Initialize\
-      \ Lab Bricks -------')\n        # GetNumDevices will determine how many LPS\
-      \ devices are availible\n        self.numDevices = self.vnx.fnLPS_GetNumDevices()\n\
-      \        print(str(self.numDevices), ' device(s) found')\n\n        # GetDevInfo\
-      \ generates a list, stored in the devices array, of\n        # every availible\
-      \ LPS device attached to the system\n        # GetDevInfo will return the number\
-      \ of device handles in the array\n        dev_info = self.vnx.fnLPS_GetDevInfo(self.Devices)\n\
-      \        print('GetDevInfo returned', str(dev_info))\n        self.ser_num =\
-      \ []\n        # GetSerialNumber will return the devices serial number\n    \
-      \    for i in range(self.numDevices):\n            self.ser_num.append(self.vnx.fnLPS_GetSerialNumber(self.Devices[i]))\n\
-      \            print('Serial number:', str(self.ser_num[i]))\n\n            #InitDevice\
-      \ will prepare the device for operation\n            init_dev = self.vnx.fnLPS_InitDevice(self.Devices[i])\n\
-      \            print('InitDevice returned', str(init_dev))\n        print('----------\
-      \ End initialize -----------')\n        \n        self.SampleRate = SampleRate\n\
-      \        self.numSamples = 1024\n        self.Gain = Gain \n\n        self.c\
-      \ = 3e8\n        self.SignalFreq = SignalFreq\n        self.d = 1/2*(self.c/self.SignalFreq)\n\
-      \n        self.sdr = uhd.usrp.MultiUSRP(\"type=b200\")\n\n        self.Rx1_Phase_Cal\
-      \ = Rx1_Phase_Cal\n        self.Rx2_Phase_Cal = Rx2_Phase_Cal\n        self.Rx3_Phase_Cal\
-      \ = Rx3_Phase_Cal\n        self.Rx4_Phase_Cal = Rx4_Phase_Cal\n\n        self.PhaseStep\
-      \ = 4\n        self.PhaseValues = np.arange(-180, 184, self.PhaseStep)\n\n \
-      \       for i in range(self.numDevices):\n            #HER ER DER 2ms\n    \
-      \        #print(\"For loop\", time.time())\n            self.vnx.fnLPS_SetWorkingFrequency(self.Devices[i],\
-      \ int(self.SignalFreq/ 100000))\n        \n        self.lookUp = {}\n      \
-      \  \n        for i in range(self.numDevices):\n            match self.ser_num[i]:\n\
-      \                case 24780:\n                    self.lookUp.update({0 : self.Devices[i]})\n\
-      \                case 24781:\n                    self.lookUp.update({1 : self.Devices[i]})\n\
-      \                case 24783:\n                    self.lookUp.update({2 : self.Devices[i]})\
-      \  \n                case 24784: \n                    self.lookUp.update({3\
-      \ : self.Devices[i]})\n        \n        #self.data = np.zeros((100),dtype=np.complex64)\n\
-      \n    def work(self, input_items, output_items):\n        \"\"\"example: multiply\
-      \ with constant\"\"\"        \n        max_signal = -10000\n        max_angle\
-      \ = 0\n\n        win = np.hamming(self.numSamples)\n\n        PhaseStepNumber\
-      \ = 0\n        tSweep = time.time()\n        \n        for PhDelta in self.PhaseValues:\n\
-      \            tPhases = time.time()\n            \n            RxPhase1 = (PhDelta*0+self.Rx1_Phase_Cal)\
-      \ % 360\n            RxPhase2 = (PhDelta*1+self.Rx2_Phase_Cal) % 360\n     \
-      \       RxPhase3 = (PhDelta*2+self.Rx3_Phase_Cal) % 360\n            RxPhase4\
-      \ = (PhDelta*3+self.Rx4_Phase_Cal) % 360\n            \n            self.vnx.fnLPS_SetPhaseAngle(self.lookUp[0],\
-      \ int(RxPhase1))\n            self.vnx.fnLPS_SetPhaseAngle(self.lookUp[1], int(RxPhase2))\n\
-      \            self.vnx.fnLPS_SetPhaseAngle(self.lookUp[2], int(RxPhase3))\n \
-      \           self.vnx.fnLPS_SetPhaseAngle(self.lookUp[3], int(RxPhase4))\n  \
-      \          \n            print(\"USB time: \",(time.time()-tPhases)*1000, \"\
-      ms\")\n            \n            value1 = (self.c * np.radians(np.abs(PhDelta)))/(2*np.pi*self.SignalFreq*self.d)\n\
-      \            clamped_value1 = max(min(1, value1), -1)     \n            theta\
-      \ = np.degrees(np.arcsin(clamped_value1))\n\n            if PhDelta>=0:\n  \
-      \              SteerAngle = theta   # positive PhaseDelta covers 0deg to 90\
-      \ deg\n            else:\n                SteerAngle = -theta   # negative phase\
-      \ delta covers 0 deg to -90 deg\n\n            #print(\"Pre sample: \",time.time())\n\
-      \n            #tSample = time.time()\n            #Get samples of data\n   \
-      \         data = self.sdr.recv_num_samps(\n            self.numSamples, # Number\
-      \ of samples\n            self.SignalFreq, # Frequency in Hz\n            self.SampleRate,\
-      \ # Sampling rate\n            [0], # Receive on channel 0\n            self.Gain,\
-      \ # dB of RX gain\n            )\n            \n            #print(\"Sample\
-      \ time: \",(time.time()-tSample)*1000, \"ms\")\n\n            y = data * win\n\
-      \            sp = np.absolute(np.fft.fft(y,1024))\n            PeakValue = 20*np.log10(max(sp[0]))\n\
+      \ of your block. The arguments to init  will\nbe the parameters. All of them\
+      \ are required to have default values!\n\"\"\"\nfrom ctypes import cdll, c_int\n\
+      import numpy as np\nfrom gnuradio import gr\nimport uhd\nimport time\nimport\
+      \ serial\nimport sys\nimport pathlib\nimport os\n\n\nclass blk(gr.sync_block):\
+      \  # other base classes are basic_block, decim_block, interp_block\n    \"\"\
+      \"Embedded Python Block example - a simple multiply const\"\"\"\n\n    def serial_ports(self):\n\
+      \        # ONLY for windows, and only 1 port expect\n        if sys.platform.startswith('win'):\
+      \  # windows\n            ports = [\"COM%s\" % (i + 1) for i in range(256)]\n\
+      \        else:\n            raise EnvironmentError('NOT WINDOWS PLATFORM')\n\
+      \n        for port in ports:  # i in COM1...COM256\n            try:\n     \
+      \           s = serial.Serial(port)\n                s.close()\n           \
+      \     result = port\n            except (OSError, serial.SerialException):\n\
+      \                pass\n        return result\n\n    def __init__(self, SampleRate=1,\
+      \ SignalFreq=1, Gain=1, Rx1_Phase_Cal=1, Rx2_Phase_Cal=1, Rx3_Phase_Cal=1, Rx4_Phase_Cal=1):\
+      \  # only default arguments here\n        \"\"\"arguments to this function show\
+      \ up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n         \
+      \   self,\n            name='Angle sweeper',  # will show up in GRC\n      \
+      \      in_sig=[],\n            out_sig=[np.complex64, np.float32]\n        )\n\
+      \        # Initialize arduino communication\n        # self.SerialObj = serial.Serial(self.serial_ports(),\
+      \ baudrate=115200, bytesize=8, parity='N', stopbits=1)\n\n        # Setup off\
+      \ phaseshifters\n        self.path = str(pathlib.Path().resolve()) + \"\\VNX_dps64.dll\"\
+      \n        print(\"--- Path ---\")\n        print(self.path)\n        self.vnx\
+      \ = cdll.LoadLibrary(os.path.normpath(self.path))\n\n        self.vnx.fnLPS_SetTestMode(False)\
+      \  # Use actual devices\n        self.DeviceIDArray = c_int * 20\n        self.Devices\
+      \ = self.DeviceIDArray()  # This array will hold the list of device handles\
+      \ returned by the DLL\n\n        print('------- Initialize Lab Bricks -------')\n\
+      \        self.numDevices = self.vnx.fnLPS_GetNumDevices()  # GetNumDevices will\
+      \ determine how many LPS devices are availible\n        print(str(self.numDevices),\
+      \ ' device(s) found')\n\n        # GetDevInfo generates a list, stored in the\
+      \ devices array, of\n        # every availible LPS device attached to the system\n\
+      \        # GetDevInfo will return the number of device handles in the array\n\
+      \        dev_info = self.vnx.fnLPS_GetDevInfo(self.Devices)\n        print('GetDevInfo\
+      \ returned', str(dev_info))\n        self.ser_num = []\n        # GetSerialNumber\
+      \ will return the devices serial number\n        for i in range(self.numDevices):\n\
+      \            self.ser_num.append(self.vnx.fnLPS_GetSerialNumber(self.Devices[i]))\n\
+      \            print('Serial number:', str(self.ser_num[i]))\n            init_dev\
+      \ = self.vnx.fnLPS_InitDevice(self.Devices[i])  # InitDevice will prepare the\
+      \ device for operation\n            print('InitDevice returned', str(init_dev))\n\
+      \        print('---------- End initialize -----------')\n\n        self.c =\
+      \ 3e8\n        self.SignalFreq = SignalFreq  # input\n        self.d = 1/2*(self.c/self.SignalFreq)\
+      \  # d = (1/2) * (3e8/2.4e9)\n        self.PhaseStep = 4\n        self.PhaseValues\
+      \ = np.arange(-180, 184, self.PhaseStep)  # finds number of steps\n\n      \
+      \  for i in range(self.numDevices):\n            self.vnx.fnLPS_SetWorkingFrequency(self.Devices[i],\
+      \ int(self.SignalFreq / 100000))\n\n        self.lookUp = {}\n\n        for\
+      \ i in range(self.numDevices):\n            match self.ser_num[i]:\n       \
+      \         case 24780:\n                    self.lookUp.update({0: self.Devices[i]})\n\
+      \                case 24781:\n                    self.lookUp.update({1: self.Devices[i]})\n\
+      \                case 24783:\n                    self.lookUp.update({2: self.Devices[i]})\n\
+      \                case 24784:\n                    self.lookUp.update({3: self.Devices[i]})\n\
+      \n        self.sdr = uhd.usrp.MultiUSRP(\"type=b200\")\n        # self.sdr.set_rx_agc(True,\
+      \ 0) # 0 for channel 0, i.e. the first channel of the USRP\n\n        f = open(\"\
+      data.txt\", \"w\")\n        f.write(\"Data output:\" + '\\n')\n        f.close()\n\
+      \n        # Variables\n        self.Rx1_Phase_Cal = Rx1_Phase_Cal  # phase off\
+      \ set\n        self.Rx2_Phase_Cal = Rx2_Phase_Cal  # phase off set\n       \
+      \ self.Rx3_Phase_Cal = Rx3_Phase_Cal  # phase off set\n        self.Rx4_Phase_Cal\
+      \ = Rx4_Phase_Cal  # phase off set\n        self.SampleRate = SampleRate  #\
+      \ input\n        self.numSamples = 1024\n        self.Gain = Gain  # input\n\
+      \        self.slice_value = 1\n        self.threshold = -25\n\n    def find_local_maxima(self,\
+      \ arr):\n        local_maxima = []\n        avg_arr = self.moving_average(arr,\
+      \ 3)\n        for i in range(2, len(avg_arr) - 2):\n            if avg_arr[i][0]\
+      \ > avg_arr[i - 1][0] and avg_arr[i][0] > avg_arr[i + 1][0]:\n             \
+      \   local_maxima.append(avg_arr[i][1])\n        return local_maxima\n\n    def\
+      \ moving_average(self, arr, window_size):\n        i = 0\n        moving_averages\
+      \ = []\n        while i < len(arr) - window_size + 1:\n            window =\
+      \ []\n            for j in range(window_size):\n                window.append(arr[i+j][0])\n\
+      \n            window_average = round(sum(window) / window_size, 2)  # Calculate\
+      \ the average of current window\n\n            moving_averages.append([window_average,\
+      \ arr[i][1]])\n            i += 1\n        return moving_averages\n\n    def\
+      \ set_phase_shifters(self, PhDelta):\n        # RxPhase1 = (PhDelta*0+self.Rx1_Phase_Cal)\
+      \ % 360\n        # RxPhase2 = (PhDelta*1+self.Rx2_Phase_Cal) % 360\n       \
+      \ # RxPhase3 = (PhDelta*2+self.Rx3_Phase_Cal) % 360\n        RxPhase4 = (PhDelta*3+self.Rx4_Phase_Cal)\
+      \ % 360  # the phase shift + offset % 360\n        # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[0],\
+      \ int(RxPhase1))\n        # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[1], int(RxPhase2))\n\
+      \        # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[2], int(RxPhase3))\n   \
+      \     self.vnx.fnLPS_SetPhaseAngle(self.lookUp[3], int(RxPhase4))  # phaseshifter,\
+      \ phase\n\n    def calculate_stearing_angle(self, PhDelta):\n        value1\
+      \ = (self.c * np.radians(np.abs(PhDelta)))/(2*np.pi*self.SignalFreq*self.d)\n\
+      \        clamped_value1 = max(min(1, value1), -1)\n        theta = np.degrees(np.arcsin(clamped_value1))\n\
+      \n        error_func = 0.0000002045*theta**4+0.00295*theta**2+2  # the theta\
+      \ does not macth theta irl for that error_func\n        theta -= error_func\n\
+      \        if PhDelta >= 0:\n            Steer_angle = theta   # positive PhaseDelta\
+      \ covers 0deg to 90 deg\n        else:\n            Steer_angle = -theta   #\
+      \ negative phase delta covers 0 deg to -90 deg\n        return Steer_angle\n\
+      \n    def fft(self, win):\n        # Get samples of data\n        data = self.sdr.recv_num_samps(\n\
+      \            self.numSamples,  # Number of samples\n            self.SignalFreq,\
+      \  # Frequency in Hz\n            self.SampleRate,  # Sampling rate\n      \
+      \      [0],  # Receive on channel 0\n            self.Gain,  # dB of RX gain\n\
+      \        )\n\n        y = data * win\n        sp = np.absolute(np.fft.fft(y,\
+      \ self.numSamples))\n        return sp\n\n    def multiple_sorces(self, sp_shifted):\n\
+      \        index = 0\n        peaks = []\n        for spec in sp_shifted:\n  \
+      \          index += 1\n            if 20*np.log10(spec) > self.threshold:\n\
+      \                # freq=((index+slice_value)*(self.SampleRate/self.numSamples)-self.SampleRate/2+self.SignalFreq)/pow(10,9)\n\
+      \                amp = round(20*np.log10(spec), 2)\n                peaks.append([amp,\
+      \ index])\n\n        local_max = self.find_local_maxima(peaks)\n        return\
+      \ local_max\n\n    def work(self, input_items, output_items):\n        max_signal\
+      \ = -10000\n        PhaseStepNumber = 0\n        win = np.hamming(self.numSamples)\
+      \  # window function\n        tSweep = time.time()\n        collected_max =\
+      \ []\n\n        for PhDelta in self.PhaseValues:  # every tick in the -180 ->\
+      \ 184\n            self.set_phase_shifters(PhDelta)\n            steer_angle\
+      \ = self.calculate_stearing_angle(PhDelta)\n            sp = self.fft(win)\n\
+      \            PeakValue = 20*np.log10(max(sp[0]))\n            sp_shifted = np.fft.fftshift(sp[0][self.slice_value:-self.slice_value])\n\
+      \            local_max = self.multiple_sorces(sp_shifted)\n            if len(local_max)\
+      \ != 0:\n                collected_max.append([PhaseStepNumber, local_max])\n\
       \n            if PeakValue > max_signal:\n                max_signal = PeakValue\n\
-      \                max_angle = SteerAngle\n\n            output_items[0][PhaseStepNumber]\
-      \ = ((1)*SteerAngle + (1j * PeakValue))\n            PhaseStepNumber = PhaseStepNumber\
-      \ + 1\n                 \n        print(\"Sweep time: \",(time.time()-tSweep)*1000,\
-      \ \"ms\")  \n\n        output_items[0] = output_items[0][0:PhaseStepNumber]\n\
-      \        output_items[1][:] = max_angle\n        return len(output_items[0])\n\
-      \        "
+      \                max_angle = steer_angle\n\n            output_items[0][PhaseStepNumber]\
+      \ = ((1)*steer_angle + (1j * PeakValue))\n            PhaseStepNumber = PhaseStepNumber\
+      \ + 1\n\n        f = open(\"data.txt\", \"a\")\n        f.write(\"Collected_max:\
+      \ \" + str(collected_max) + '\\n')\n        f.write(\"Sweep time: \" + str((time.time()-tSweep)*1000)\
+      \ + \"ms\" + '\\n')\n        f.close()\n\n        print(\"Sweep time: \", (time.time()-tSweep)*1000,\
+      \ \"ms\")\n\n        # self.SerialObj.write(bytes(str(round(max_angle)), \"\
+      utf-8\"))  # Transmit input to Arduino\n\n        output_items[0] = output_items[0][0:PhaseStepNumber]\n\
+      \        output_items[1][:] = max_angle\n        return len(output_items[0])\n"
     affinity: ''
     alias: ''
     comment: ''
@@ -273,7 +300,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [208, 204.0]
+    coordinate: [32, 328.0]
     rotation: 0
     state: true
 - name: qtgui_const_sink_x_0
@@ -365,7 +392,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [464, 192.0]
+    coordinate: [664, 260.0]
     rotation: 0
     state: true
 - name: qtgui_number_sink_0
@@ -428,7 +455,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [952, 276.0]
+    coordinate: [1016, 408.0]
     rotation: 0
     state: true
 

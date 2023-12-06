@@ -9,3 +9,4 @@ The arduino code is running in the vscode ekstention PlatformIO.
 I recommend you are using the same. 
 
 asbjørn was here, CASPER DO BE GAY 
+comment form jacobs new pc
