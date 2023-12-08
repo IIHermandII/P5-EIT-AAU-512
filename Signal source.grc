@@ -137,7 +137,7 @@ blocks:
     bw7: '0'
     bw8: '0'
     bw9: '0'
-    center_freq0: 2.4e9
+    center_freq0: 2.44e9
     center_freq1: '0'
     center_freq10: '0'
     center_freq11: '0'
@@ -328,7 +328,7 @@ blocks:
     start_time: '-1.0'
     stream_args: peak=0.003906
     stream_chans: '[]'
-    sync: none
+    sync: sync
     time_source0: ''
     time_source1: ''
     time_source2: ''
