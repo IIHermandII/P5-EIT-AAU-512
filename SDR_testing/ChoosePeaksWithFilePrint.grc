@@ -226,7 +226,7 @@ blocks:
       \ (properties work, too).\n        # self.vnx = cdll.LoadLibrary(r\"C:\\Users\\\
       asbjo\\OneDrive\\Dokumenter\\AAU\\Asbj\xF8rns_gnu\\VNX_dps64.dll\")\n      \
       \  \n        # self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200,\
-      \ bytesize=8, parity='N', stopbits=1)\n        \n        self.numSamples = 51\n\
+      \ bytesize=8, parity='N', stopbits=1)\n        \n        self.numSamples = 53\n\
       \        self.N=self.numSamples\n        \n\n        self.path = str(pathlib.Path().resolve())+\"\
       \\VNX_dps64.dll\"\n        #print(\"#####################path\")\n        #print(self.path)\n\
       \        #r\"C:\\Users\\emill\\OneDrive - Aalborg Universitet\\GIT2\\P5-EIT-AAU-512\\\
@@ -255,12 +255,12 @@ blocks:
       )\n\n        self.Rx1_Phase_Cal = Rx1_Phase_Cal #phase off set\n        self.Rx2_Phase_Cal\
       \ = Rx2_Phase_Cal #phase off set\n        self.Rx3_Phase_Cal = Rx3_Phase_Cal\
       \ #phase off set\n        self.Rx4_Phase_Cal = Rx4_Phase_Cal #phase off set\n\
-      \n        self.SteerStep = 2\n        self.SteeringAngles = np.arange(-50,51,self.SteerStep)#\
-      \ array of [-50,-48....48,50] with lenght 51\n        self.PhaseValues= (np.pi\
-      \ * np.sin((self.SteeringAngles*2*np.pi)/(360))*360)/(2*np.pi) # same size array,\
-      \ but now the necessary linear phaseshift as a decimal number\n\n        for\
-      \ i in range(self.numDevices):\n            #HER ER DER 2ms\n            #print(\"\
-      For loop\", time.time())\n            self.vnx.fnLPS_SetWorkingFrequency(self.Devices[i],\
+      \n        self.SteerStep = 2\n        self.SteeringAngles = np.arange(-52,53,self.SteerStep)#\
+      \ array of [-52,-50,-48....48,50,52] with lenght 53\n        self.PhaseValues=\
+      \ (np.pi * np.sin((self.SteeringAngles*2*np.pi)/(360))*360)/(2*np.pi) # same\
+      \ size array, but now the necessary linear phaseshift as a decimal number\n\n\
+      \        for i in range(self.numDevices):\n            #HER ER DER 2ms\n   \
+      \         #print(\"For loop\", time.time())\n            self.vnx.fnLPS_SetWorkingFrequency(self.Devices[i],\
       \ int(self.SignalFreq/ 100000))\n        \n        self.lookUp = {}\n      \
       \  \n        for i in range(self.numDevices):\n            match self.ser_num[i]:\n\
       \                case 24780:\n                    self.lookUp.update({0 : self.Devices[i]})\n\
@@ -298,39 +298,42 @@ blocks:
       \ int(RxPhase4)) #phaseshifter, phase\n            #tPhases = time.time()\n\
       \            #print(\"PHASESHIFTER USB time: \",(time.time()-tPhases)*1000,\
       \ \"ms\")\n            \n\n            #print(\"Pre sample: \",time.time())\n\
-      \n            tSample = time.time()\n            #Get samples of data\n    \
-      \        data = self.sdr.recv_num_samps(\n            self.numSamples, # Number\
+      \n            #tSample = time.time()\n            #Get samples of data\n   \
+      \         data = self.sdr.recv_num_samps(\n            self.numSamples, # Number\
       \ of samples\n            self.SignalFreq, # Frequency in Hz\n            self.SampleRate,\
       \ # Sampling rate\n            [0], # Receive on channel 0\n            self.Gain,\
-      \ # dB of RX gain\n            )\n            \n            # print(\"SDR TOTAL\
-      \ Sample time: \",(time.time()-tSample)*1000, \"ms\")\n\n            y = data\
-      \ * win\n            \n            sp = np.absolute(np.fft.fft(y,self.N))\n\
-      \            #print(sp[0])\n            for iteration in range(self.SliceValue):\n\
-      \                sp[0][int(iteration)]=1e-9\n                if iteration >=\
-      \ 0:\n                    sp[0][int((self.numSamples-1)-iteration)]=1e-9\n \
-      \           \n\n            PeakValue = 20*np.log10(sp[0][self.MVF])\n     \
-      \       \n            bartlett = np.add(bartlett,sp[0]) #sum each fft\n    \
-      \        \n\n\n            if PeakValue > max_signal:\n                max_signal\
+      \ # dB of RX gain\n            )\n            # print(\"SDR TOTAL Sample time:\
+      \ \",(time.time()-tSample)*1000, \"ms\")\n            \n            #tSample\
+      \ = time.time()\n            y = data * win\n            \n            sp =\
+      \ np.absolute(np.fft.fft(y,self.N))\n            #print(sp[0])\n           \
+      \ for iteration in range(self.SliceValue):\n                sp[0][int(iteration)]=1e-9\n\
+      \                if iteration >= 0:\n                    sp[0][int((self.numSamples-1)-iteration)]=1e-9\n\
+      \            \n\n            PeakValue = 20*np.log10(sp[0][self.MVF])\n    \
+      \        \n            bartlett = np.add(bartlett,sp[0]) #sum each fft\n   \
+      \         \n\n\n            if PeakValue > max_signal:\n                max_signal\
       \ = PeakValue\n                #theta = 0.9425*theta + 0.154 calibrated correction\n\
       \                max_angle = 0.9425*self.SteeringAngles[SteerStepNumber]+0.154\n\
       \n            output_items[0][SteerStepNumber] = ((1)*self.SteeringAngles[SteerStepNumber]\
       \ + (1j * PeakValue))\n            SteerStepNumber = SteerStepNumber + 1\n \
-      \           #end of phaseshift  for-loop\n\n        \n\n        self.MVF = np.argmax(bartlett)\
-      \ #finds the index of max value\n        bartlett = np.fft.fftshift(bartlett)\n\
-      \        MVF2 = np.argmax(bartlett)\n        FreqOfInterest=self.SignalFreq\
-      \ + self.freqVal[MVF2]\n        \n\n        output_items[2][0:self.numSamples]\
-      \ = self.freqVal+1j*20*np.log10(bartlett)\n        output_items[2]=output_items[2][0:self.numSamples]\n\
-      \        #print(output_items[2])\n        \n\n\n        print(\"Sweep time:\
-      \ \",(time.time()-tSweep)*1000, \"ms\")  \n       \n        self.averageArray\
-      \ = np.append(self.averageArray[-self.averageNumber:], max_angle)\n        \n\
-      \        time.sleep(2)\n        print(\"just sendt \" + str(round(np.mean(self.averageArray))))\n\
-      \        #self.SerialObj.write(bytes(str(round(max_angle)), \"utf-8\"))  # Transmit\
-      \ input to Arduino\n        \n        time.sleep(2)\n\n        #Write to file\n\
-      \        self.angles.append(max_angle)\n        with open(self.doa_text_file,\"\
-      w\") as f:\n            f.write(\"__DOA__\\n\")\n            for angles in self.angles:\n\
-      \                f.write(f\"{angles}, \")\n        \n\n        \n\n\n\n    \
-      \    output_items[0] = output_items[0][0:SteerStepNumber]\n        output_items[1][:]\
-      \ = max_angle\n        output_items[3][:] = FreqOfInterest\n        return len(output_items[0])"
+      \           #end of phaseshift  for-loop\n            #print(\"Signalprocessing\
+      \ time: \",(time.time()-tSample)*1000, \"ms\")\n\n        # tSample = time.time()\n\
+      \n        self.MVF = np.argmax(bartlett) #finds the index of max value\n   \
+      \     bartlett = np.fft.fftshift(bartlett)\n        MVF2 = np.argmax(bartlett)\n\
+      \        FreqOfInterest=self.SignalFreq + self.freqVal[MVF2]\n        \n\n \
+      \       output_items[2][0:self.numSamples] = self.freqVal+1j*20*np.log10(bartlett)\n\
+      \        output_items[2]=output_items[2][0:self.numSamples]\n        #print(output_items[2])\n\
+      \        \n\n\n        print(\"Sweep time: \",(time.time()-tSweep)*1000, \"\
+      ms\")  \n       \n        self.averageArray = np.append(self.averageArray[-self.averageNumber:],\
+      \ max_angle)\n        \n        #time.sleep(2)\n        print(\"just sendt \"\
+      \ + str(round(np.mean(self.averageArray))))\n        #self.SerialObj.write(bytes(str(round(max_angle)),\
+      \ \"utf-8\"))  # Transmit input to Arduino\n        \n        #time.sleep(2)\n\
+      \n        #Write to file\n        self.angles.append(max_angle)\n        with\
+      \ open(self.doa_text_file,\"w\") as f:\n            f.write(\"__DOA__\\n\")\n\
+      \            for angles in self.angles:\n                f.write(f\"{angles},\
+      \ \")\n        # print(\"Post processing time: \",(time.time()-tSample)*1000,\
+      \ \"ms\")\n        \n\n        \n\n\n\n        output_items[0] = output_items[0][0:SteerStepNumber]\n\
+      \        output_items[1][:] = max_angle\n        output_items[3][:] = FreqOfInterest\n\
+      \        return len(output_items[0])"
     affinity: ''
     alias: ''
     comment: ''
@@ -402,7 +405,7 @@ blocks:
     marker9: '0'
     name: '""'
     nconnections: '1'
-    size: '51'
+    size: '53'
     style1: '0'
     style10: '0'
     style2: '0'
