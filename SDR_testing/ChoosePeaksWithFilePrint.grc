@@ -1,0 +1,674 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: Plot_phase_sweep
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Phase sweeper
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [104, 32.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: Freq
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: 'Tabs@0 : 0,0,1,2'
+    label: ''
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: int
+    start: int(2.4e9)
+    step: int(1e6)
+    stop: int(2.48e9)
+    value: int(2.4e9)
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [840, 288.0]
+    rotation: 0
+    state: true
+- name: Gain
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: 'Tabs@0 : 1,0,1,2'
+    label: ''
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: int
+    start: '0'
+    step: '1'
+    stop: '80'
+    value: '0'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [592, 288.0]
+    rotation: 0
+    state: true
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: int(10e6)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [408, 36.0]
+    rotation: 0
+    state: enabled
+- name: Tabs
+  id: qtgui_tab_widget
+  parameters:
+    alias: ''
+    comment: ''
+    gui_hint: 2,0,1,2
+    label0: RF control
+    label1: Phase control
+    label10: Tab 10
+    label11: Tab 11
+    label12: Tab 12
+    label13: Tab 13
+    label14: Tab 14
+    label15: Tab 15
+    label16: Tab 16
+    label17: Tab 17
+    label18: Tab 18
+    label19: Tab 19
+    label2: Tab 2
+    label3: Tab 3
+    label4: Tab 4
+    label5: Tab 5
+    label6: Tab 6
+    label7: Tab 7
+    label8: Tab 8
+    label9: Tab 9
+    num_tabs: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [328, 328.0]
+    rotation: 0
+    state: true
+- name: blocks_moving_average_xx_0
+  id: blocks_moving_average_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    length: '1000'
+    max_iter: samp_rate
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: 1/1000
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1176, 572.0]
+    rotation: 0
+    state: true
+- name: blocks_throttle2_0
+  id: blocks_throttle2
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [864, 588.0]
+    rotation: 0
+    state: true
+- name: blocks_throttle2_0_0
+  id: blocks_throttle2
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [864, 732.0]
+    rotation: 0
+    state: true
+- name: epy_block_1
+  id: epy_block
+  parameters:
+    Gain: Gain
+    Rx1_Phase_Cal: '0'
+    Rx2_Phase_Cal: '31'
+    Rx3_Phase_Cal: '355'
+    Rx4_Phase_Cal: '20'
+    SampleRate: samp_rate
+    SignalFreq: Freq
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to _init_  will\nbe the parameters. All of them\
+      \ are required to have default values!\n\"\"\"\nfrom ctypes import *\nimport\
+      \ numpy as np\nfrom gnuradio import gr\nimport uhd\nimport time \nimport serial\n\
+      import sys\nimport pathlib\nimport os\nfrom datetime import datetime \n\"\"\"\
+      \nTO TRY:\n-Ny USB HUB / gav 1ms\n-Skrive til en enkelt enhed / stadig langsomt\n\
+      -Unders\xF8ge om der er et usb handle som fucker up - det virker jo til set\
+      \ frequency og s\xE5 ikke til set phase - og phase er endda en mindre besked\
+      \ end frequency / PAS\n-Sende besked sammen med s\xE6t working frequency / gav\
+      \ 10ms delay pr. besked\n-S\xE6t working frequency sammen i main loopet / 40ms\
+      \ delay - 10 pr enhed\n-Pr\xF8v at lade streamhandle ligge i Multi klassen og\
+      \ kun generere et nyt hvis det et None\n-Evt. sk\xE6r ned p\xE5 buffer for at\
+      \ det ikke tager l\xE6ngere tid end h\xF8jst n\xF8dvendigt i Recv_num\nm\n\"\
+      \"\"\n\nclass blk(gr.sync_block):  # other base classes are basic_block, decim_block,\
+      \ interp_block\n    \"\"\"Embedded Python Block example - a simple multiply\
+      \ const\"\"\"\n\n    def serial_ports(self):\n    # ONLY for windows, and only\
+      \ 1 port expect\n        if sys.platform.startswith('win'):  # windows\n   \
+      \         ports = [\"COM%s\" % (i + 1) for i in range(256)]\n        else:\n\
+      \            raise EnvironmentError('NOT WINDOWS PLATFORM')\n\n        for port\
+      \ in ports:  # i in COM1...COM256\n            try:\n                s = serial.Serial(port)\n\
+      \                s.close()\n                result = port\n            except\
+      \ (OSError, serial.SerialException):\n                pass\n        return result\n\
+      \    \n    def __init__(self, SampleRate = 1, SignalFreq=1, Gain=1, Rx1_Phase_Cal=1,\
+      \ Rx2_Phase_Cal=1, Rx3_Phase_Cal=1, Rx4_Phase_Cal=1):  # only default arguments\
+      \ here\n        \"\"\"arguments to this function show up as parameters in GRC\"\
+      \"\"\n        gr.sync_block.__init__(\n            self,\n            name='Angle\
+      \ sweeper',  # will show up in GRC\n            in_sig=[],\n            out_sig=[np.complex64,\
+      \ np.float32,np.complex64,np.float32]\n        )\n        # if an attribute\
+      \ with the same name as a parameter is found,\n        # a callback is registered\
+      \ (properties work, too).\n        # self.vnx = cdll.LoadLibrary(r\"C:\\Users\\\
+      asbjo\\OneDrive\\Dokumenter\\AAU\\Asbj\xF8rns_gnu\\VNX_dps64.dll\")\n      \
+      \  \n        # self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200,\
+      \ bytesize=8, parity='N', stopbits=1)\n        \n        self.numSamples = 51\n\
+      \        self.N=self.numSamples\n        \n\n        self.path = str(pathlib.Path().resolve())+\"\
+      \\VNX_dps64.dll\"\n        #print(\"#####################path\")\n        #print(self.path)\n\
+      \        #r\"C:\\Users\\emill\\OneDrive - Aalborg Universitet\\GIT2\\P5-EIT-AAU-512\\\
+      SDR_testing\\VNX_dps64.dll\"\n        self.vnx = cdll.LoadLibrary(r'C:\\Users\\\
+      Jacob Elberg Nielsen\\Aalborg Universitet\\EI3 gruppe 1 - Dokumenter\\5. semester\\\
+      GNU\\Manual phase control\\VNX_dps64.dll') #\n        \n        \n        self.vnx.fnLPS_SetTestMode(False)\
+      \  # Use actual devices\n        self.DeviceIDArray = c_int * 20\n        self.Devices\
+      \ = self.DeviceIDArray()  # This array will hold the list of device handles\
+      \ returned by the DLL\n\n        print('------- Initialize Lab Bricks -------')\n\
+      \        self.numDevices = self.vnx.fnLPS_GetNumDevices() # GetNumDevices will\
+      \ determine how many LPS devices are availible\n        print(str(self.numDevices),\
+      \ ' device(s) found')\n\n        # GetDevInfo generates a list, stored in the\
+      \ devices array, of\n        # every availible LPS device attached to the system\n\
+      \        # GetDevInfo will return the number of device handles in the array\n\
+      \        dev_info = self.vnx.fnLPS_GetDevInfo(self.Devices)\n        print('GetDevInfo\
+      \ returned', str(dev_info))\n        self.ser_num = []\n        # GetSerialNumber\
+      \ will return the devices serial number\n        for i in range(self.numDevices):\n\
+      \            self.ser_num.append(self.vnx.fnLPS_GetSerialNumber(self.Devices[i]))\n\
+      \            print('Serial number:', str(self.ser_num[i]))\n            init_dev\
+      \ = self.vnx.fnLPS_InitDevice(self.Devices[i])  #InitDevice will prepare the\
+      \ device for operation\n            print('InitDevice returned', str(init_dev))\n\
+      \        print('---------- End initialize -----------')\n        \n        self.SampleRate\
+      \ = SampleRate #input\n        self.Gain = Gain #input\n\n        self.c = 3e8\n\
+      \        self.SignalFreq = SignalFreq #input\n        self.d = 1/2*(self.c/self.SignalFreq)\
+      \ # d = (1/2) * (3e8/2.4e9)\n\n        self.sdr = uhd.usrp.MultiUSRP(\"type=b200\"\
+      )\n\n        self.Rx1_Phase_Cal = Rx1_Phase_Cal #phase off set\n        self.Rx2_Phase_Cal\
+      \ = Rx2_Phase_Cal #phase off set\n        self.Rx3_Phase_Cal = Rx3_Phase_Cal\
+      \ #phase off set\n        self.Rx4_Phase_Cal = Rx4_Phase_Cal #phase off set\n\
+      \n        self.SteerStep = 2\n        self.SteeringAngles = np.arange(-50,51,self.SteerStep)#\
+      \ array of [-50,-48....48,50] with lenght 51\n        self.PhaseValues= (np.pi\
+      \ * np.sin((self.SteeringAngles*2*np.pi)/(360))*360)/(2*np.pi) # same size array,\
+      \ but now the necessary linear phaseshift as a decimal number\n\n        for\
+      \ i in range(self.numDevices):\n            #HER ER DER 2ms\n            #print(\"\
+      For loop\", time.time())\n            self.vnx.fnLPS_SetWorkingFrequency(self.Devices[i],\
+      \ int(self.SignalFreq/ 100000))\n        \n        self.lookUp = {}\n      \
+      \  \n        for i in range(self.numDevices):\n            match self.ser_num[i]:\n\
+      \                case 24780:\n                    self.lookUp.update({0 : self.Devices[i]})\n\
+      \                case 24781:\n                    self.lookUp.update({1 : self.Devices[i]})\n\
+      \                case 24783:\n                    self.lookUp.update({2 : self.Devices[i]})\
+      \  \n                case 24784: \n                    self.lookUp.update({3\
+      \ : self.Devices[i]})\n        \n        self.freqVal = np.linspace(-self.SampleRate/2+self.SampleRate/self.numSamples,self.SampleRate/2,self.numSamples)\
+      \ \n        self.SliceValue=1\n        self.MVF = int(69/2) #Most Valuable Frequency,\
+      \ just a random number for the first time the code runs\n        self.averageNumber\
+      \ = 5\n        self.averageArray = np.zeros(self.averageNumber)\n\n        #Write\
+      \ to file\n        self.angles = []\n        # Making .txt file in data_folder\
+      \ with name = Steering_angle + date and time\n        current_folder = os.getcwd()\n\
+      \        text_file_position = os.path.join(current_folder, \"data_folder\")\n\
+      \        if not os.path.exists(text_file_position):\n            os.makedirs(text_file_position)\n\
+      \        date_time = datetime.now().strftime(\"%Y %m %d %H %M %S\")\n      \
+      \  self.text_file = os.path.join(text_file_position, f\"Steering_angles_{date_time}.txt\"\
+      )\n        print(self.text_file)\n        with open(os.path.normpath(self.text_file),\
+      \ \"w\") as f:\n            f.write(\"\")\n        f.close()\n        self.first_run\
+      \ = True\n        self.doa_text_file = os.path.join(text_file_position,f\"DOA_{date_time}.txt\"\
+      )\n        with open(os.path.normpath(self.doa_text_file), \"w\") as f:\n  \
+      \          f.write(\"\")\n        f.close()\n\n        #Set phase for phaseshifter\
+      \ 1, as it does not change\n        #RxPhase1 = 0\n        #self.vnx.fnLPS_SetPhaseAngle(self.lookUp[0],\
+      \ int(RxPhase1))\n\n        \n\n\n    \n\n\n    def work(self, input_items,\
+      \ output_items):\n        \"\"\"example: multiply with constant\"\"\"      \
+      \  \n        max_signal = -10000\n        max_angle = 0\n\n        win = np.hamming(self.numSamples)\
+      \ #window function\n\n        SteerStepNumber = 0 \n        tSweep = time.time()\n\
+      \        bartlett = np.zeros(self.numSamples,dtype=np.float32)\n        sp =\
+      \ np.zeros(self.numSamples,dtype=np.float32)\n        \n\n        for PhDelta\
+      \ in self.PhaseValues: #evry tick in the steering angles\n            # RxPhase2\
+      \ = (np.round(PhDelta*1)+self.Rx2_Phase_Cal) % 360\n            # RxPhase3 =\
+      \ (np.round(PhDelta*2)+self.Rx3_Phase_Cal) % 360\n            # RxPhase4 = (np.round(PhDelta*3)+self.Rx4_Phase_Cal)\
+      \ % 360 #the phase shift + offset % 360\n            # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[1],\
+      \ int(RxPhase2))\n            # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[2],\
+      \ int(RxPhase3))\n            # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[3],\
+      \ int(RxPhase4)) #phaseshifter, phase\n            #tPhases = time.time()\n\
+      \            #print(\"PHASESHIFTER USB time: \",(time.time()-tPhases)*1000,\
+      \ \"ms\")\n            \n\n            #print(\"Pre sample: \",time.time())\n\
+      \n            tSample = time.time()\n            #Get samples of data\n    \
+      \        data = self.sdr.recv_num_samps(\n            self.numSamples, # Number\
+      \ of samples\n            self.SignalFreq, # Frequency in Hz\n            self.SampleRate,\
+      \ # Sampling rate\n            [0], # Receive on channel 0\n            self.Gain,\
+      \ # dB of RX gain\n            )\n            \n            # print(\"SDR TOTAL\
+      \ Sample time: \",(time.time()-tSample)*1000, \"ms\")\n\n            y = data\
+      \ * win\n            \n            sp = np.absolute(np.fft.fft(y,self.N))\n\
+      \            #print(sp[0])\n            for iteration in range(self.SliceValue):\n\
+      \                sp[0][int(iteration)]=1e-9\n                if iteration >=\
+      \ 0:\n                    sp[0][int((self.numSamples-1)-iteration)]=1e-9\n \
+      \           \n\n            PeakValue = 20*np.log10(sp[0][self.MVF])\n     \
+      \       \n            bartlett = np.add(bartlett,sp[0]) #sum each fft\n    \
+      \        \n\n\n            if PeakValue > max_signal:\n                max_signal\
+      \ = PeakValue\n                #theta = 0.9425*theta + 0.154 calibrated correction\n\
+      \                max_angle = 0.9425*self.SteeringAngles[SteerStepNumber]+0.154\n\
+      \n            output_items[0][SteerStepNumber] = ((1)*self.SteeringAngles[SteerStepNumber]\
+      \ + (1j * PeakValue))\n            SteerStepNumber = SteerStepNumber + 1\n \
+      \           #end of phaseshift  for-loop\n\n        \n\n        self.MVF = np.argmax(bartlett)\
+      \ #finds the index of max value\n        bartlett = np.fft.fftshift(bartlett)\n\
+      \        MVF2 = np.argmax(bartlett)\n        FreqOfInterest=self.SignalFreq\
+      \ + self.freqVal[MVF2]\n        \n\n        output_items[2][0:self.numSamples]\
+      \ = self.freqVal+1j*20*np.log10(bartlett)\n        output_items[2]=output_items[2][0:self.numSamples]\n\
+      \        #print(output_items[2])\n        \n\n\n        print(\"Sweep time:\
+      \ \",(time.time()-tSweep)*1000, \"ms\")  \n       \n        self.averageArray\
+      \ = np.append(self.averageArray[-self.averageNumber:], max_angle)\n        \n\
+      \        time.sleep(2)\n        print(\"just sendt \" + str(round(np.mean(self.averageArray))))\n\
+      \        #self.SerialObj.write(bytes(str(round(max_angle)), \"utf-8\"))  # Transmit\
+      \ input to Arduino\n        \n        time.sleep(2)\n\n        #Write to file\n\
+      \        self.angles.append(max_angle)\n        with open(self.doa_text_file,\"\
+      w\") as f:\n            f.write(\"__DOA__\\n\")\n            for angles in self.angles:\n\
+      \                f.write(f\"{angles}, \")\n        \n\n        \n\n\n\n    \
+      \    output_items[0] = output_items[0][0:SteerStepNumber]\n        output_items[1][:]\
+      \ = max_angle\n        output_items[3][:] = FreqOfInterest\n        return len(output_items[0])"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('Angle sweeper', 'blk', [('SampleRate', '1'), ('SignalFreq', '1'),
+      ('Gain', '1'), ('Rx1_Phase_Cal', '1'), ('Rx2_Phase_Cal', '1'), ('Rx3_Phase_Cal',
+      '1'), ('Rx4_Phase_Cal', '1')], [], [('0', 'complex', 1), ('1', 'float', 1),
+      ('2', 'complex', 1), ('3', 'float', 1)], 'Embedded Python Block example - a
+      simple multiply const', ['Gain', 'Rx1_Phase_Cal', 'Rx2_Phase_Cal', 'Rx3_Phase_Cal',
+      'Rx4_Phase_Cal', 'SampleRate', 'SignalFreq'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [480, 464.0]
+    rotation: 0
+    state: true
+- name: qtgui_const_sink_x_0
+  id: qtgui_const_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: '"blue"'
+    color10: '"red"'
+    color2: '"red"'
+    color3: '"red"'
+    color4: '"red"'
+    color5: '"red"'
+    color6: '"red"'
+    color7: '"red"'
+    color8: '"red"'
+    color9: '"red"'
+    comment: ''
+    grid: 'False'
+    gui_hint: 0,0,1,2
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'True'
+    marker1: '0'
+    marker10: '0'
+    marker2: '0'
+    marker3: '0'
+    marker4: '0'
+    marker5: '0'
+    marker6: '0'
+    marker7: '0'
+    marker8: '0'
+    marker9: '0'
+    name: '""'
+    nconnections: '1'
+    size: '51'
+    style1: '0'
+    style10: '0'
+    style2: '0'
+    style3: '0'
+    style4: '0'
+    style5: '0'
+    style6: '0'
+    style7: '0'
+    style8: '0'
+    style9: '0'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: complex
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    xmax: '60'
+    xmin: '-60'
+    ymax: '10'
+    ymin: '-80'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [864, 476.0]
+    rotation: 0
+    state: true
+- name: qtgui_const_sink_x_0_0
+  id: qtgui_const_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: '"blue"'
+    color10: '"red"'
+    color2: '"red"'
+    color3: '"red"'
+    color4: '"red"'
+    color5: '"red"'
+    color6: '"red"'
+    color7: '"red"'
+    color8: '"red"'
+    color9: '"red"'
+    comment: ''
+    grid: 'True'
+    gui_hint: 4,0,1,2
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'True'
+    marker1: '0'
+    marker10: '0'
+    marker2: '0'
+    marker3: '0'
+    marker4: '0'
+    marker5: '0'
+    marker6: '0'
+    marker7: '0'
+    marker8: '0'
+    marker9: '0'
+    name: '""'
+    nconnections: '1'
+    size: '51'
+    style1: '0'
+    style10: '0'
+    style2: '0'
+    style3: '0'
+    style4: '0'
+    style5: '0'
+    style6: '0'
+    style7: '0'
+    style8: '0'
+    style9: '0'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: complex
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    xmax: int(samp_rate/2-(samp_rate/2)/62)
+    xmin: int(-samp_rate/2)
+    ymax: '10'
+    ymin: '-50'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [848, 652.0]
+    rotation: 0
+    state: true
+- name: qtgui_number_sink_0
+  id: qtgui_number_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    autoscale: 'False'
+    avg: '0'
+    color1: ("black", "black")
+    color10: ("black", "black")
+    color2: ("black", "black")
+    color3: ("black", "black")
+    color4: ("black", "black")
+    color5: ("black", "black")
+    color6: ("black", "black")
+    color7: ("black", "black")
+    color8: ("black", "black")
+    color9: ("black", "black")
+    comment: ''
+    factor1: '1'
+    factor10: '1'
+    factor2: '1'
+    factor3: '1'
+    factor4: '1'
+    factor5: '1'
+    factor6: '1'
+    factor7: '1'
+    factor8: '1'
+    factor9: '1'
+    graph_type: qtgui.NUM_GRAPH_HORIZ
+    gui_hint: 1,0,1,1
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    max: '90'
+    min: '-90'
+    name: '"Max angle"'
+    nconnections: '1'
+    type: float
+    unit1: ''
+    unit10: ''
+    unit2: ''
+    unit3: ''
+    unit4: ''
+    unit5: ''
+    unit6: ''
+    unit7: ''
+    unit8: ''
+    unit9: ''
+    update_time: '0.10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1480, 564.0]
+    rotation: 0
+    state: true
+- name: qtgui_number_sink_0_1
+  id: qtgui_number_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    autoscale: 'False'
+    avg: '0'
+    color1: ("black", "black")
+    color10: ("black", "black")
+    color2: ("black", "black")
+    color3: ("black", "black")
+    color4: ("black", "black")
+    color5: ("black", "black")
+    color6: ("black", "black")
+    color7: ("black", "black")
+    color8: ("black", "black")
+    color9: ("black", "black")
+    comment: ''
+    factor1: '1'
+    factor10: '1'
+    factor2: '1'
+    factor3: '1'
+    factor4: '1'
+    factor5: '1'
+    factor6: '1'
+    factor7: '1'
+    factor8: '1'
+    factor9: '1'
+    graph_type: qtgui.NUM_GRAPH_HORIZ
+    gui_hint: 1,1,1,1
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    max: Freq+samp_rate/2
+    min: Freq-samp_rate/2
+    name: '"Frequency of interest"'
+    nconnections: '1'
+    type: float
+    unit1: ''
+    unit10: ''
+    unit2: ''
+    unit3: ''
+    unit4: ''
+    unit5: ''
+    unit6: ''
+    unit7: ''
+    unit8: ''
+    unit9: ''
+    update_time: '0.10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1192, 700.0]
+    rotation: 0
+    state: true
+
+connections:
+- [blocks_moving_average_xx_0, '0', qtgui_number_sink_0, '0']
+- [blocks_throttle2_0, '0', blocks_moving_average_xx_0, '0']
+- [blocks_throttle2_0_0, '0', qtgui_number_sink_0_1, '0']
+- [epy_block_1, '0', qtgui_const_sink_x_0, '0']
+- [epy_block_1, '1', blocks_throttle2_0, '0']
+- [epy_block_1, '2', qtgui_const_sink_x_0_0, '0']
+- [epy_block_1, '3', blocks_throttle2_0_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.7.0
