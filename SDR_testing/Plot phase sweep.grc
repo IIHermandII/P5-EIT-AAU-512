@@ -300,15 +300,15 @@ blocks:
       \         if PeakValue > max_signal:\n                max_signal = PeakValue\n\
       \                max_angle = steer_angle\n\n            output_items[0][PhaseStepNumber]\
       \ = ((1) * steer_angle + (1j * PeakValue))\n            PhaseStepNumber += 1\n\
-      \n        output_items[0] = output_items[0][:PhaseStepNumber]\n\n\n        time.sleep(2)\n\
+      \n        output_items[0] = output_items[0][:PhaseStepNumber]\n\n\n        #time.sleep(2)\n\
       \        print(\"just sendt \" + str(int(max_angle)))\n        self.SerialObj.write(bytes(str(int(max_angle)),\
-      \ \"utf-8\"))  # Transmit input to Arduino\n        \n        time.sleep(2)\n\
-      \n        #steer_angle = []\n        #Amplitude = []\n        with open(self.text_file,\
-      \ \"w\") as f:\n            f.write(\"__NEW__\\n\" )\n            f.write(f\"\
-      ST: {(time.time()-tSweep)*1000} ms\\n\")\n            f.write(f\"CM: {collected_max}\\\
-      n\")\n            f.write(\"S: \\n\")\n            f.write(\"LEN S LIST:\" +\
-      \ str(len(np.real(output_items[0]))) + \"\\n\")\n            for angles in np.real(output_items[0]):\n\
-      \                f.write(f\"{angles}, \")\n                #steer_angle.append(angles)\n\
+      \ \"utf-8\"))  # Transmit input to Arduino\n        \n        \n\n        #steer_angle\
+      \ = []\n        #Amplitude = []\n        with open(self.text_file, \"w\") as\
+      \ f:\n            f.write(\"__NEW__\\n\" )\n            f.write(f\"ST: {(time.time()-tSweep)*1000}\
+      \ ms\\n\")\n            f.write(f\"CM: {collected_max}\\n\")\n            f.write(\"\
+      S: \\n\")\n            f.write(\"LEN S LIST:\" + str(len(np.real(output_items[0])))\
+      \ + \"\\n\")\n            for angles in np.real(output_items[0]):\n        \
+      \        f.write(f\"{angles}, \")\n                #steer_angle.append(angles)\n\
       \            f.write(\"\\n\")\n            f.write(\"A: \\n\")\n           \
       \ f.write(\"LEN A LIST:\" + str(len(np.imag(output_items[0]))) + \"\\n\")\n\
       \            for amp in np.imag(output_items[0]):\n                f.write(f\"\
@@ -316,7 +316,7 @@ blocks:
       n\")\n        \n        self.angles.append(max_angle)\n        with open(self.doa_text_file,\"\
       w\") as f:\n            f.write(\"__DOA__\\n\")\n            for angles in self.angles:\n\
       \                f.write(f\"{angles}, \")\n\n        output_items[1][:] = max_angle\n\
-      \        return len(output_items[0])\n"
+      \        time.sleep(0.2)\n        return len(output_items[0])\n"
     affinity: ''
     alias: ''
     comment: ''

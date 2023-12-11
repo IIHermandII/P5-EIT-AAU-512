@@ -225,7 +225,7 @@ blocks:
       \ with the same name as a parameter is found,\n        # a callback is registered\
       \ (properties work, too).\n        # self.vnx = cdll.LoadLibrary(r\"C:\\Users\\\
       asbjo\\OneDrive\\Dokumenter\\AAU\\Asbj\xF8rns_gnu\\VNX_dps64.dll\")\n      \
-      \  \n        # self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200,\
+      \  \n        self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200,\
       \ bytesize=8, parity='N', stopbits=1)\n        \n        self.numSamples = 53\n\
       \        self.N=self.numSamples\n        \n\n        self.path = str(pathlib.Path().resolve())+\"\
       \\VNX_dps64.dll\"\n        #print(\"#####################path\")\n        #print(self.path)\n\
@@ -282,35 +282,35 @@ blocks:
       \ = True\n        self.doa_text_file = os.path.join(text_file_position,f\"DOA_{date_time}.txt\"\
       )\n        with open(os.path.normpath(self.doa_text_file), \"w\") as f:\n  \
       \          f.write(\"\")\n        f.close()\n\n        #Set phase for phaseshifter\
-      \ 1, as it does not change\n        #RxPhase1 = 0\n        #self.vnx.fnLPS_SetPhaseAngle(self.lookUp[0],\
+      \ 1, as it does not change\n        RxPhase1 = 0\n        self.vnx.fnLPS_SetPhaseAngle(self.lookUp[0],\
       \ int(RxPhase1))\n\n        \n\n\n    \n\n\n    def work(self, input_items,\
       \ output_items):\n        \"\"\"example: multiply with constant\"\"\"      \
       \  \n        max_signal = -10000\n        max_angle = 0\n\n        win = np.hamming(self.numSamples)\
       \ #window function\n\n        SteerStepNumber = 0 \n        tSweep = time.time()\n\
       \        bartlett = np.zeros(self.numSamples,dtype=np.float32)\n        sp =\
       \ np.zeros(self.numSamples,dtype=np.float32)\n        \n\n        for PhDelta\
-      \ in self.PhaseValues: #evry tick in the steering angles\n            # RxPhase2\
-      \ = (np.round(PhDelta*1)+self.Rx2_Phase_Cal) % 360\n            # RxPhase3 =\
-      \ (np.round(PhDelta*2)+self.Rx3_Phase_Cal) % 360\n            # RxPhase4 = (np.round(PhDelta*3)+self.Rx4_Phase_Cal)\
-      \ % 360 #the phase shift + offset % 360\n            # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[1],\
-      \ int(RxPhase2))\n            # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[2],\
-      \ int(RxPhase3))\n            # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[3],\
-      \ int(RxPhase4)) #phaseshifter, phase\n            #tPhases = time.time()\n\
-      \            #print(\"PHASESHIFTER USB time: \",(time.time()-tPhases)*1000,\
-      \ \"ms\")\n            \n\n            #print(\"Pre sample: \",time.time())\n\
-      \n            #tSample = time.time()\n            #Get samples of data\n   \
-      \         data = self.sdr.recv_num_samps(\n            self.numSamples, # Number\
-      \ of samples\n            self.SignalFreq, # Frequency in Hz\n            self.SampleRate,\
-      \ # Sampling rate\n            [0], # Receive on channel 0\n            self.Gain,\
-      \ # dB of RX gain\n            )\n            # print(\"SDR TOTAL Sample time:\
-      \ \",(time.time()-tSample)*1000, \"ms\")\n            \n            #tSample\
-      \ = time.time()\n            y = data * win\n            \n            sp =\
-      \ np.absolute(np.fft.fft(y,self.N))\n            #print(sp[0])\n           \
-      \ for iteration in range(self.SliceValue):\n                sp[0][int(iteration)]=1e-9\n\
-      \                if iteration >= 0:\n                    sp[0][int((self.numSamples-1)-iteration)]=1e-9\n\
-      \            \n\n            PeakValue = 20*np.log10(sp[0][self.MVF])\n    \
-      \        \n            bartlett = np.add(bartlett,sp[0]) #sum each fft\n   \
-      \         \n\n\n            if PeakValue > max_signal:\n                max_signal\
+      \ in self.PhaseValues: #evry tick in the steering angles\n            RxPhase2\
+      \ = (np.round(PhDelta*1)+self.Rx2_Phase_Cal) % 360\n            RxPhase3 = (np.round(PhDelta*2)+self.Rx3_Phase_Cal)\
+      \ % 360\n            RxPhase4 = (np.round(PhDelta*3)+self.Rx4_Phase_Cal) % 360\
+      \ #the phase shift + offset % 360\n            self.vnx.fnLPS_SetPhaseAngle(self.lookUp[1],\
+      \ int(RxPhase2))\n            self.vnx.fnLPS_SetPhaseAngle(self.lookUp[2], int(RxPhase3))\n\
+      \            self.vnx.fnLPS_SetPhaseAngle(self.lookUp[3], int(RxPhase4)) #phaseshifter,\
+      \ phase\n            #tPhases = time.time()\n            #print(\"PHASESHIFTER\
+      \ USB time: \",(time.time()-tPhases)*1000, \"ms\")\n            \n\n       \
+      \     #print(\"Pre sample: \",time.time())\n\n            #tSample = time.time()\n\
+      \            #Get samples of data\n            data = self.sdr.recv_num_samps(\n\
+      \            self.numSamples, # Number of samples\n            self.SignalFreq,\
+      \ # Frequency in Hz\n            self.SampleRate, # Sampling rate\n        \
+      \    [0], # Receive on channel 0\n            self.Gain, # dB of RX gain\n \
+      \           )\n            # print(\"SDR TOTAL Sample time: \",(time.time()-tSample)*1000,\
+      \ \"ms\")\n            \n            #tSample = time.time()\n            y =\
+      \ data * win\n            \n            sp = np.absolute(np.fft.fft(y,self.N))\n\
+      \            #print(sp[0])\n            for iteration in range(self.SliceValue):\n\
+      \                sp[0][int(iteration)]=1e-9\n                if iteration >=\
+      \ 0:\n                    sp[0][int((self.numSamples-1)-iteration)]=1e-9\n \
+      \           \n\n            PeakValue = 20*np.log10(sp[0][self.MVF])\n     \
+      \       \n            bartlett = np.add(bartlett,sp[0]) #sum each fft\n    \
+      \        \n\n\n            if PeakValue > max_signal:\n                max_signal\
       \ = PeakValue\n                #theta = 0.9425*theta + 0.154 calibrated correction\n\
       \                max_angle = 0.9425*self.SteeringAngles[SteerStepNumber]+0.154\n\
       \n            output_items[0][SteerStepNumber] = ((1)*self.SteeringAngles[SteerStepNumber]\
@@ -325,8 +325,8 @@ blocks:
       \        \n\n\n        print(\"Sweep time: \",(time.time()-tSweep)*1000, \"\
       ms\")  \n       \n        self.averageArray = np.append(self.averageArray[-self.averageNumber:],\
       \ max_angle)\n        \n        #time.sleep(2)\n        print(\"just sendt \"\
-      \ + str(round(np.mean(self.averageArray))))\n        #self.SerialObj.write(bytes(str(round(max_angle)),\
-      \ \"utf-8\"))  # Transmit input to Arduino\n        \n        #time.sleep(2)\n\
+      \ + str(round(np.mean(self.averageArray))))\n        self.SerialObj.write(bytes(str(round(max_angle)),\
+      \ \"utf-8\"))  # Transmit input to Arduino\n        \n        time.sleep(0.5)\n\
       \n        #Write to file\n        self.angles.append(max_angle)\n        with\
       \ open(self.doa_text_file,\"w\") as f:\n            f.write(\"__DOA__\\n\")\n\
       \            for angles in self.angles:\n                f.write(f\"{angles},\
