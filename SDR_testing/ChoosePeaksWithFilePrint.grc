@@ -225,8 +225,8 @@ blocks:
       \ with the same name as a parameter is found,\n        # a callback is registered\
       \ (properties work, too).\n        # self.vnx = cdll.LoadLibrary(r\"C:\\Users\\\
       asbjo\\OneDrive\\Dokumenter\\AAU\\Asbj\xF8rns_gnu\\VNX_dps64.dll\")\n      \
-      \  \n        self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200,\
-      \ bytesize=8, parity='N', stopbits=1)\n        \n        self.numSamples = 53\n\
+      \  \n        #self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200,\
+      \ bytesize=8, parity='N', stopbits=1)\n        \n        self.numSamples = 105\n\
       \        self.N=self.numSamples\n        \n\n        self.path = str(pathlib.Path().resolve())+\"\
       \\VNX_dps64.dll\"\n        #print(\"#####################path\")\n        #print(self.path)\n\
       \        #r\"C:\\Users\\emill\\OneDrive - Aalborg Universitet\\GIT2\\P5-EIT-AAU-512\\\
@@ -255,12 +255,13 @@ blocks:
       )\n\n        self.Rx1_Phase_Cal = Rx1_Phase_Cal #phase off set\n        self.Rx2_Phase_Cal\
       \ = Rx2_Phase_Cal #phase off set\n        self.Rx3_Phase_Cal = Rx3_Phase_Cal\
       \ #phase off set\n        self.Rx4_Phase_Cal = Rx4_Phase_Cal #phase off set\n\
-      \n        self.SteerStep = 2\n        self.SteeringAngles = np.arange(-52,53,self.SteerStep)#\
+      \n        self.SteerStep = 1\n        self.SteeringAngles = np.arange(-52,53,self.SteerStep)#\
       \ array of [-52,-50,-48....48,50,52] with lenght 53\n        self.PhaseValues=\
       \ (np.pi * np.sin((self.SteeringAngles*2*np.pi)/(360))*360)/(2*np.pi) # same\
-      \ size array, but now the necessary linear phaseshift as a decimal number\n\n\
-      \        for i in range(self.numDevices):\n            #HER ER DER 2ms\n   \
-      \         #print(\"For loop\", time.time())\n            self.vnx.fnLPS_SetWorkingFrequency(self.Devices[i],\
+      \ size array, but now the necessary linear phaseshift as a decimal number\n\
+      \        #print(self.PhaseValues,\": \",len(self.PhaseValues))\n        for\
+      \ i in range(self.numDevices):\n            #HER ER DER 2ms\n            #print(\"\
+      For loop\", time.time())\n            self.vnx.fnLPS_SetWorkingFrequency(self.Devices[i],\
       \ int(self.SignalFreq/ 100000))\n        \n        self.lookUp = {}\n      \
       \  \n        for i in range(self.numDevices):\n            match self.ser_num[i]:\n\
       \                case 24780:\n                    self.lookUp.update({0 : self.Devices[i]})\n\
@@ -325,8 +326,8 @@ blocks:
       \        \n\n\n        print(\"Sweep time: \",(time.time()-tSweep)*1000, \"\
       ms\")  \n       \n        self.averageArray = np.append(self.averageArray[-self.averageNumber:],\
       \ max_angle)\n        \n        #time.sleep(2)\n        print(\"just sendt \"\
-      \ + str(round(np.mean(self.averageArray))))\n        self.SerialObj.write(bytes(str(round(max_angle)),\
-      \ \"utf-8\"))  # Transmit input to Arduino\n        \n        time.sleep(0.5)\n\
+      \ + str(round(np.mean(self.averageArray))))\n        #self.SerialObj.write(bytes(str(round(max_angle)),\
+      \ \"utf-8\"))  # Transmit input to Arduino\n        \n        #time.sleep(0.5)\n\
       \n        #Write to file\n        self.angles.append(max_angle)\n        with\
       \ open(self.doa_text_file,\"w\") as f:\n            f.write(\"__DOA__\\n\")\n\
       \            for angles in self.angles:\n                f.write(f\"{angles},\
@@ -405,7 +406,7 @@ blocks:
     marker9: '0'
     name: '""'
     nconnections: '1'
-    size: '53'
+    size: '105'
     style1: '0'
     style10: '0'
     style2: '0'
@@ -435,8 +436,8 @@ blocks:
     width9: '1'
     xmax: '60'
     xmin: '-60'
-    ymax: '10'
-    ymin: '-80'
+    ymax: '30'
+    ymin: '-60'
   states:
     bus_sink: false
     bus_source: false
@@ -497,7 +498,7 @@ blocks:
     marker9: '0'
     name: '""'
     nconnections: '1'
-    size: '51'
+    size: '105'
     style1: '0'
     style10: '0'
     style2: '0'
@@ -527,13 +528,13 @@ blocks:
     width9: '1'
     xmax: int(samp_rate/2-(samp_rate/2)/62)
     xmin: int(-samp_rate/2)
-    ymax: '10'
-    ymin: '-50'
+    ymax: '60'
+    ymin: '-30'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [848, 652.0]
+    coordinate: [840, 652.0]
     rotation: 0
     state: true
 - name: qtgui_number_sink_0

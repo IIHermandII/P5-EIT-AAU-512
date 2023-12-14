@@ -193,7 +193,7 @@ blocks:
       \ up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n         \
       \   self,\n            name='Angle sweeper',  # will show up in GRC\n      \
       \      in_sig=[],\n            out_sig=[np.complex64, np.float32]\n        )\n\
-      \        # Initialize arduino communication\n        self.SerialObj = serial.Serial(self.serial_ports(),\
+      \        # Initialize arduino communication\n        #self.SerialObj = serial.Serial(self.serial_ports(),\
       \ baudrate=115200, bytesize=8, parity='N', stopbits=1)\n\n        # Setup off\
       \ phaseshifters\n        self.path = str(pathlib.Path().resolve()) + \"\\VNX_dps64.dll\"\
       \n        print(\"--- Path ---\")\n        print(self.path)\n        self.vnx\
@@ -301,7 +301,7 @@ blocks:
       \                max_angle = steer_angle\n\n            output_items[0][PhaseStepNumber]\
       \ = ((1) * steer_angle + (1j * PeakValue))\n            PhaseStepNumber += 1\n\
       \n        output_items[0] = output_items[0][:PhaseStepNumber]\n\n\n        #time.sleep(2)\n\
-      \        print(\"just sendt \" + str(int(max_angle)))\n        self.SerialObj.write(bytes(str(int(max_angle)),\
+      \        print(\"just sendt \" + str(int(max_angle)))\n        #self.SerialObj.write(bytes(str(int(max_angle)),\
       \ \"utf-8\"))  # Transmit input to Arduino\n        \n        \n\n        #steer_angle\
       \ = []\n        #Amplitude = []\n        with open(self.text_file, \"w\") as\
       \ f:\n            f.write(\"__NEW__\\n\" )\n            f.write(f\"ST: {(time.time()-tSweep)*1000}\
@@ -316,7 +316,7 @@ blocks:
       n\")\n        \n        self.angles.append(max_angle)\n        with open(self.doa_text_file,\"\
       w\") as f:\n            f.write(\"__DOA__\\n\")\n            for angles in self.angles:\n\
       \                f.write(f\"{angles}, \")\n\n        output_items[1][:] = max_angle\n\
-      \        time.sleep(0.2)\n        return len(output_items[0])\n"
+      \        #time.sleep(0.2)\n        return len(output_items[0])\n"
     affinity: ''
     alias: ''
     comment: ''

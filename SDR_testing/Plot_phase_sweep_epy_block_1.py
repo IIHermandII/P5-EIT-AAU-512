@@ -58,9 +58,9 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         # a callback is registered (properties work, too).
         # self.vnx = cdll.LoadLibrary(r"C:\Users\asbjo\OneDrive\Dokumenter\AAU\Asbjørns_gnu\VNX_dps64.dll")
         
-        self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200, bytesize=8, parity='N', stopbits=1)
+        #self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200, bytesize=8, parity='N', stopbits=1)
         
-        self.numSamples = 53
+        self.numSamples = 105
         self.N=self.numSamples
         
 
@@ -107,10 +107,10 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         self.Rx3_Phase_Cal = Rx3_Phase_Cal #phase off set
         self.Rx4_Phase_Cal = Rx4_Phase_Cal #phase off set
 
-        self.SteerStep = 2
+        self.SteerStep = 1
         self.SteeringAngles = np.arange(-52,53,self.SteerStep)# array of [-52,-50,-48....48,50,52] with lenght 53
         self.PhaseValues= (np.pi * np.sin((self.SteeringAngles*2*np.pi)/(360))*360)/(2*np.pi) # same size array, but now the necessary linear phaseshift as a decimal number
-
+        #print(self.PhaseValues,": ",len(self.PhaseValues))
         for i in range(self.numDevices):
             #HER ER DER 2ms
             #print("For loop", time.time())
@@ -248,9 +248,9 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         
         #time.sleep(2)
         print("just sendt " + str(round(np.mean(self.averageArray))))
-        self.SerialObj.write(bytes(str(round(max_angle)), "utf-8"))  # Transmit input to Arduino
+        #self.SerialObj.write(bytes(str(round(max_angle)), "utf-8"))  # Transmit input to Arduino
         
-        time.sleep(0.5)
+        #time.sleep(0.5)
 
         #Write to file
         self.angles.append(max_angle)

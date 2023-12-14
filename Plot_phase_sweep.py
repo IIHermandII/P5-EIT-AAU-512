@@ -64,7 +64,7 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = int(10e6)
+        self.samp_rate = samp_rate = int(20e6)
         self.Gain = Gain = 0
         self.Freq = Freq = int(2.4e9)
 
@@ -78,62 +78,25 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
         self.Tabs_grid_layout_0 = Qt.QGridLayout()
         self.Tabs_layout_0.addLayout(self.Tabs_grid_layout_0)
         self.Tabs.addTab(self.Tabs_widget_0, 'RF control')
-        self.top_grid_layout.addWidget(self.Tabs, 2, 0, 1, 2)
+        self.top_grid_layout.addWidget(self.Tabs, 2, 0, 1, 1)
         for r in range(2, 3):
             self.top_grid_layout.setRowStretch(r, 1)
-        for c in range(0, 2):
+        for c in range(0, 1):
             self.top_grid_layout.setColumnStretch(c, 1)
         self._Gain_range = Range(0, 80, 1, 0, 200)
         self._Gain_win = RangeWidget(self._Gain_range, self.set_Gain, "'Gain'", "counter_slider", int, QtCore.Qt.Horizontal)
-        self.Tabs_grid_layout_0.addWidget(self._Gain_win, 1, 0, 1, 2)
+        self.Tabs_grid_layout_0.addWidget(self._Gain_win, 1, 0, 1, 1)
         for r in range(1, 2):
             self.Tabs_grid_layout_0.setRowStretch(r, 1)
-        for c in range(0, 2):
+        for c in range(0, 1):
             self.Tabs_grid_layout_0.setColumnStretch(c, 1)
         self._Freq_range = Range(int(2.4e9), int(2.48e9), int(1e6), int(2.4e9), 200)
         self._Freq_win = RangeWidget(self._Freq_range, self.set_Freq, "'Freq'", "counter_slider", int, QtCore.Qt.Horizontal)
-        self.Tabs_grid_layout_0.addWidget(self._Freq_win, 0, 0, 1, 2)
+        self.Tabs_grid_layout_0.addWidget(self._Freq_win, 0, 0, 1, 1)
         for r in range(0, 1):
             self.Tabs_grid_layout_0.setRowStretch(r, 1)
-        for c in range(0, 2):
+        for c in range(0, 1):
             self.Tabs_grid_layout_0.setColumnStretch(c, 1)
-        self.qtgui_number_sink_0_1 = qtgui.number_sink(
-            gr.sizeof_float,
-            0,
-            qtgui.NUM_GRAPH_HORIZ,
-            1,
-            None # parent
-        )
-        self.qtgui_number_sink_0_1.set_update_time(0.10)
-        self.qtgui_number_sink_0_1.set_title("Frequency of interest")
-
-        labels = ['', '', '', '', '',
-            '', '', '', '', '']
-        units = ['', '', '', '', '',
-            '', '', '', '', '']
-        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
-            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
-        factor = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-
-        for i in range(1):
-            self.qtgui_number_sink_0_1.set_min(i, Freq-samp_rate/2)
-            self.qtgui_number_sink_0_1.set_max(i, Freq+samp_rate/2)
-            self.qtgui_number_sink_0_1.set_color(i, colors[i][0], colors[i][1])
-            if len(labels[i]) == 0:
-                self.qtgui_number_sink_0_1.set_label(i, "Data {0}".format(i))
-            else:
-                self.qtgui_number_sink_0_1.set_label(i, labels[i])
-            self.qtgui_number_sink_0_1.set_unit(i, units[i])
-            self.qtgui_number_sink_0_1.set_factor(i, factor[i])
-
-        self.qtgui_number_sink_0_1.enable_autoscale(False)
-        self._qtgui_number_sink_0_1_win = sip.wrapinstance(self.qtgui_number_sink_0_1.qwidget(), Qt.QWidget)
-        self.top_grid_layout.addWidget(self._qtgui_number_sink_0_1_win, 1, 1, 1, 1)
-        for r in range(1, 2):
-            self.top_grid_layout.setRowStretch(r, 1)
-        for c in range(1, 2):
-            self.top_grid_layout.setColumnStretch(c, 1)
         self.qtgui_number_sink_0 = qtgui.number_sink(
             gr.sizeof_float,
             0,
@@ -171,60 +134,15 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
             self.top_grid_layout.setRowStretch(r, 1)
         for c in range(0, 1):
             self.top_grid_layout.setColumnStretch(c, 1)
-        self.qtgui_const_sink_x_0_0 = qtgui.const_sink_c(
-            105, #size
-            "", #name
-            1, #number of inputs
-            None # parent
-        )
-        self.qtgui_const_sink_x_0_0.set_update_time(0.10)
-        self.qtgui_const_sink_x_0_0.set_y_axis((-30), 60)
-        self.qtgui_const_sink_x_0_0.set_x_axis((int(-samp_rate/2)), (int(samp_rate/2-(samp_rate/2)/62)))
-        self.qtgui_const_sink_x_0_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
-        self.qtgui_const_sink_x_0_0.enable_autoscale(False)
-        self.qtgui_const_sink_x_0_0.enable_grid(True)
-        self.qtgui_const_sink_x_0_0.enable_axis_labels(True)
-
-
-        labels = ['', '', '', '', '',
-            '', '', '', '', '']
-        widths = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        colors = ["blue", "red", "red", "red", "red",
-            "red", "red", "red", "red", "red"]
-        styles = [0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0]
-        markers = [0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0]
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0, 1.0]
-
-        for i in range(1):
-            if len(labels[i]) == 0:
-                self.qtgui_const_sink_x_0_0.set_line_label(i, "Data {0}".format(i))
-            else:
-                self.qtgui_const_sink_x_0_0.set_line_label(i, labels[i])
-            self.qtgui_const_sink_x_0_0.set_line_width(i, widths[i])
-            self.qtgui_const_sink_x_0_0.set_line_color(i, colors[i])
-            self.qtgui_const_sink_x_0_0.set_line_style(i, styles[i])
-            self.qtgui_const_sink_x_0_0.set_line_marker(i, markers[i])
-            self.qtgui_const_sink_x_0_0.set_line_alpha(i, alphas[i])
-
-        self._qtgui_const_sink_x_0_0_win = sip.wrapinstance(self.qtgui_const_sink_x_0_0.qwidget(), Qt.QWidget)
-        self.top_grid_layout.addWidget(self._qtgui_const_sink_x_0_0_win, 4, 0, 1, 2)
-        for r in range(4, 5):
-            self.top_grid_layout.setRowStretch(r, 1)
-        for c in range(0, 2):
-            self.top_grid_layout.setColumnStretch(c, 1)
         self.qtgui_const_sink_x_0 = qtgui.const_sink_c(
-            105, #size
+            91, #size
             "", #name
             1, #number of inputs
             None # parent
         )
         self.qtgui_const_sink_x_0.set_update_time(0.10)
-        self.qtgui_const_sink_x_0.set_y_axis((-60), 30)
-        self.qtgui_const_sink_x_0.set_x_axis((-60), 60)
+        self.qtgui_const_sink_x_0.set_y_axis((-50), 10)
+        self.qtgui_const_sink_x_0.set_x_axis((-90), 90)
         self.qtgui_const_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
         self.qtgui_const_sink_x_0.enable_autoscale(False)
         self.qtgui_const_sink_x_0.enable_grid(False)
@@ -256,13 +174,12 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
             self.qtgui_const_sink_x_0.set_line_alpha(i, alphas[i])
 
         self._qtgui_const_sink_x_0_win = sip.wrapinstance(self.qtgui_const_sink_x_0.qwidget(), Qt.QWidget)
-        self.top_grid_layout.addWidget(self._qtgui_const_sink_x_0_win, 0, 0, 1, 2)
+        self.top_grid_layout.addWidget(self._qtgui_const_sink_x_0_win, 0, 0, 1, 1)
         for r in range(0, 1):
             self.top_grid_layout.setRowStretch(r, 1)
-        for c in range(0, 2):
+        for c in range(0, 1):
             self.top_grid_layout.setColumnStretch(c, 1)
         self.epy_block_1 = epy_block_1.blk(SampleRate=samp_rate, SignalFreq=Freq, Gain=Gain, Rx1_Phase_Cal=0, Rx2_Phase_Cal=31, Rx3_Phase_Cal=355, Rx4_Phase_Cal=20)
-        self.blocks_throttle2_0_0 = blocks.throttle( gr.sizeof_float*1, samp_rate, True, 0 if "auto" == "auto" else max( int(float(0.1) * samp_rate) if "auto" == "time" else int(0.1), 1) )
         self.blocks_throttle2_0 = blocks.throttle( gr.sizeof_float*1, samp_rate, True, 0 if "auto" == "auto" else max( int(float(0.1) * samp_rate) if "auto" == "time" else int(0.1), 1) )
         self.blocks_moving_average_xx_0 = blocks.moving_average_ff(1000, (1/1000), samp_rate, 1)
 
@@ -272,11 +189,8 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
         ##################################################
         self.connect((self.blocks_moving_average_xx_0, 0), (self.qtgui_number_sink_0, 0))
         self.connect((self.blocks_throttle2_0, 0), (self.blocks_moving_average_xx_0, 0))
-        self.connect((self.blocks_throttle2_0_0, 0), (self.qtgui_number_sink_0_1, 0))
         self.connect((self.epy_block_1, 1), (self.blocks_throttle2_0, 0))
-        self.connect((self.epy_block_1, 3), (self.blocks_throttle2_0_0, 0))
         self.connect((self.epy_block_1, 0), (self.qtgui_const_sink_x_0, 0))
-        self.connect((self.epy_block_1, 2), (self.qtgui_const_sink_x_0_0, 0))
 
 
     def closeEvent(self, event):
@@ -293,7 +207,6 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.blocks_throttle2_0.set_sample_rate(self.samp_rate)
-        self.blocks_throttle2_0_0.set_sample_rate(self.samp_rate)
         self.epy_block_1.SampleRate = self.samp_rate
 
     def get_Gain(self):
