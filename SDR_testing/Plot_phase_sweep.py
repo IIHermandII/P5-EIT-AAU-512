@@ -65,8 +65,9 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.samp_rate = samp_rate = int(10e6)
-        self.Gain = Gain = 0
-        self.Freq = Freq = int(2.4e9)
+        self.cc = cc = 0
+        self.Gain = Gain = 40
+        self.Freq = Freq = int(2.438e9)
 
         ##################################################
         # Blocks
@@ -78,19 +79,31 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
         self.Tabs_grid_layout_0 = Qt.QGridLayout()
         self.Tabs_layout_0.addLayout(self.Tabs_grid_layout_0)
         self.Tabs.addTab(self.Tabs_widget_0, 'RF control')
+        self.Tabs_widget_1 = Qt.QWidget()
+        self.Tabs_layout_1 = Qt.QBoxLayout(Qt.QBoxLayout.TopToBottom, self.Tabs_widget_1)
+        self.Tabs_grid_layout_1 = Qt.QGridLayout()
+        self.Tabs_layout_1.addLayout(self.Tabs_grid_layout_1)
+        self.Tabs.addTab(self.Tabs_widget_1, 'Control Calibration')
         self.top_grid_layout.addWidget(self.Tabs, 2, 0, 1, 2)
         for r in range(2, 3):
             self.top_grid_layout.setRowStretch(r, 1)
         for c in range(0, 2):
             self.top_grid_layout.setColumnStretch(c, 1)
-        self._Gain_range = Range(0, 80, 1, 0, 200)
+        self._cc_range = Range((-30), 30, 1, 0, 200)
+        self._cc_win = RangeWidget(self._cc_range, self.set_cc, "'cc'", "counter_slider", int, QtCore.Qt.Horizontal)
+        self.Tabs_grid_layout_1.addWidget(self._cc_win, 0, 0, 1, 2)
+        for r in range(0, 1):
+            self.Tabs_grid_layout_1.setRowStretch(r, 1)
+        for c in range(0, 2):
+            self.Tabs_grid_layout_1.setColumnStretch(c, 1)
+        self._Gain_range = Range(0, 80, 1, 40, 200)
         self._Gain_win = RangeWidget(self._Gain_range, self.set_Gain, "'Gain'", "counter_slider", int, QtCore.Qt.Horizontal)
         self.Tabs_grid_layout_0.addWidget(self._Gain_win, 1, 0, 1, 2)
         for r in range(1, 2):
             self.Tabs_grid_layout_0.setRowStretch(r, 1)
         for c in range(0, 2):
             self.Tabs_grid_layout_0.setColumnStretch(c, 1)
-        self._Freq_range = Range(int(2.4e9), int(2.48e9), int(1e6), int(2.4e9), 200)
+        self._Freq_range = Range(int(2.4e9), int(2.48e9), int(1e6), int(2.438e9), 200)
         self._Freq_win = RangeWidget(self._Freq_range, self.set_Freq, "'Freq'", "counter_slider", int, QtCore.Qt.Horizontal)
         self.Tabs_grid_layout_0.addWidget(self._Freq_win, 0, 0, 1, 2)
         for r in range(0, 1):
@@ -261,7 +274,7 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
             self.top_grid_layout.setRowStretch(r, 1)
         for c in range(0, 2):
             self.top_grid_layout.setColumnStretch(c, 1)
-        self.epy_block_1 = epy_block_1.blk(SampleRate=samp_rate, SignalFreq=Freq, Gain=Gain, Rx1_Phase_Cal=0, Rx2_Phase_Cal=31, Rx3_Phase_Cal=355, Rx4_Phase_Cal=20)
+        self.epy_block_1 = epy_block_1.blk(SampleRate=samp_rate, SignalFreq=Freq, Gain=Gain, Rx1_Phase_Cal=0, Rx2_Phase_Cal=31, Rx3_Phase_Cal=355, Rx4_Phase_Cal=20, cc=cc)
         self.blocks_throttle2_0_0 = blocks.throttle( gr.sizeof_float*1, samp_rate, True, 0 if "auto" == "auto" else max( int(float(0.1) * samp_rate) if "auto" == "time" else int(0.1), 1) )
         self.blocks_throttle2_0 = blocks.throttle( gr.sizeof_float*1, samp_rate, True, 0 if "auto" == "auto" else max( int(float(0.1) * samp_rate) if "auto" == "time" else int(0.1), 1) )
         self.blocks_moving_average_xx_0 = blocks.moving_average_ff(1000, (1/1000), samp_rate, 1)
@@ -295,6 +308,13 @@ class Plot_phase_sweep(gr.top_block, Qt.QWidget):
         self.blocks_throttle2_0.set_sample_rate(self.samp_rate)
         self.blocks_throttle2_0_0.set_sample_rate(self.samp_rate)
         self.epy_block_1.SampleRate = self.samp_rate
+
+    def get_cc(self):
+        return self.cc
+
+    def set_cc(self, cc):
+        self.cc = cc
+        self.epy_block_1.cc = self.cc
 
     def get_Gain(self):
         return self.Gain

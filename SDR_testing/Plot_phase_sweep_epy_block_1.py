@@ -46,7 +46,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
                 pass
         return result
     
-    def __init__(self, SampleRate = 1, SignalFreq=1, Gain=1, Rx1_Phase_Cal=1, Rx2_Phase_Cal=1, Rx3_Phase_Cal=1, Rx4_Phase_Cal=1):  # only default arguments here
+    def __init__(self, SampleRate = 1, SignalFreq=1, Gain=1, Rx1_Phase_Cal=1, Rx2_Phase_Cal=1, Rx3_Phase_Cal=1, Rx4_Phase_Cal=1, cc=1):  # only default arguments here
         """arguments to this function show up as parameters in GRC"""
         gr.sync_block.__init__(
             self,
@@ -58,7 +58,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         # a callback is registered (properties work, too).
         # self.vnx = cdll.LoadLibrary(r"C:\Users\asbjo\OneDrive\Dokumenter\AAU\Asbjørns_gnu\VNX_dps64.dll")
         
-        #self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200, bytesize=8, parity='N', stopbits=1)
+        self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200, bytesize=8, parity='N', stopbits=1)
         
         self.numSamples = 105
         self.N=self.numSamples
@@ -95,7 +95,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         
         self.SampleRate = SampleRate #input
         self.Gain = Gain #input
-
+        self.cc = cc
         self.c = 3e8
         self.SignalFreq = SignalFreq #input
         self.d = 1/2*(self.c/self.SignalFreq) # d = (1/2) * (3e8/2.4e9)
@@ -247,10 +247,10 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         self.averageArray = np.append(self.averageArray[-self.averageNumber:], max_angle)
         
         #time.sleep(2)
-        print("just sendt " + str(round(np.mean(self.averageArray))))
+        print("just sendt " + str(round(np.mean(self.averageArray)+self.cc))+" cc " + str(self.cc)+" average " + str(round(np.mean(self.averageArray))))
+        self.SerialObj.write(bytes(str(round(np.mean(self.averageArray)+self.cc)), "utf-8"))  # Transmit input to Arduino
         #self.SerialObj.write(bytes(str(round(max_angle)), "utf-8"))  # Transmit input to Arduino
-        
-        #time.sleep(0.5)
+        time.sleep(0.5)
 
         #Write to file
         self.angles.append(max_angle)

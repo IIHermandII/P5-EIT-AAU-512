@@ -45,13 +45,13 @@ blocks:
     start: int(2.4e9)
     step: int(1e6)
     stop: int(2.48e9)
-    value: int(2.478e9)
+    value: int(2.438e9)
     widget: counter_slider
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [840, 288.0]
+    coordinate: [736, 292.0]
     rotation: 0
     state: true
 - name: Gain
@@ -66,13 +66,34 @@ blocks:
     start: '0'
     step: '1'
     stop: '80'
-    value: '80'
+    value: '40'
     widget: counter_slider
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
     coordinate: [592, 288.0]
+    rotation: 0
+    state: true
+- name: cc
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: 'Tabs@1 : 0,0,1,2'
+    label: ''
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: int
+    start: '-30'
+    step: '1'
+    stop: '30'
+    value: '0'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [904, 292.0]
     rotation: 0
     state: true
 - name: samp_rate
@@ -94,7 +115,7 @@ blocks:
     comment: ''
     gui_hint: 2,0,1,2
     label0: RF control
-    label1: Phase control
+    label1: Control Calibration
     label10: Tab 10
     label11: Tab 11
     label12: Tab 12
@@ -113,7 +134,7 @@ blocks:
     label7: Tab 7
     label8: Tab 8
     label9: Tab 9
-    num_tabs: '1'
+    num_tabs: '2'
   states:
     bus_sink: false
     bus_source: false
@@ -217,17 +238,17 @@ blocks:
       \                s.close()\n                result = port\n            except\
       \ (OSError, serial.SerialException):\n                pass\n        return result\n\
       \    \n    def __init__(self, SampleRate = 1, SignalFreq=1, Gain=1, Rx1_Phase_Cal=1,\
-      \ Rx2_Phase_Cal=1, Rx3_Phase_Cal=1, Rx4_Phase_Cal=1):  # only default arguments\
-      \ here\n        \"\"\"arguments to this function show up as parameters in GRC\"\
-      \"\"\n        gr.sync_block.__init__(\n            self,\n            name='Angle\
-      \ sweeper',  # will show up in GRC\n            in_sig=[],\n            out_sig=[np.complex64,\
-      \ np.float32,np.complex64,np.float32]\n        )\n        # if an attribute\
-      \ with the same name as a parameter is found,\n        # a callback is registered\
-      \ (properties work, too).\n        # self.vnx = cdll.LoadLibrary(r\"C:\\Users\\\
-      asbjo\\OneDrive\\Dokumenter\\AAU\\Asbj\xF8rns_gnu\\VNX_dps64.dll\")\n      \
-      \  \n        self.SerialObj = serial.Serial(self.serial_ports(), baudrate=115200,\
-      \ bytesize=8, parity='N', stopbits=1)\n        \n        self.numSamples = 105\n\
-      \        self.N=self.numSamples\n        \n\n        self.path = str(pathlib.Path().resolve())+\"\
+      \ Rx2_Phase_Cal=1, Rx3_Phase_Cal=1, Rx4_Phase_Cal=1, cc=1):  # only default\
+      \ arguments here\n        \"\"\"arguments to this function show up as parameters\
+      \ in GRC\"\"\"\n        gr.sync_block.__init__(\n            self,\n       \
+      \     name='Angle sweeper',  # will show up in GRC\n            in_sig=[],\n\
+      \            out_sig=[np.complex64, np.float32,np.complex64,np.float32]\n  \
+      \      )\n        # if an attribute with the same name as a parameter is found,\n\
+      \        # a callback is registered (properties work, too).\n        # self.vnx\
+      \ = cdll.LoadLibrary(r\"C:\\Users\\asbjo\\OneDrive\\Dokumenter\\AAU\\Asbj\xF8\
+      rns_gnu\\VNX_dps64.dll\")\n        \n        self.SerialObj = serial.Serial(self.serial_ports(),\
+      \ baudrate=115200, bytesize=8, parity='N', stopbits=1)\n        \n        self.numSamples\
+      \ = 105\n        self.N=self.numSamples\n        \n\n        self.path = str(pathlib.Path().resolve())+\"\
       \\VNX_dps64.dll\"\n        #print(\"#####################path\")\n        #print(self.path)\n\
       \        #r\"C:\\Users\\emill\\OneDrive - Aalborg Universitet\\GIT2\\P5-EIT-AAU-512\\\
       SDR_testing\\VNX_dps64.dll\"\n        self.vnx = cdll.LoadLibrary(r'C:\\Users\\\
@@ -249,24 +270,25 @@ blocks:
       \ = self.vnx.fnLPS_InitDevice(self.Devices[i])  #InitDevice will prepare the\
       \ device for operation\n            print('InitDevice returned', str(init_dev))\n\
       \        print('---------- End initialize -----------')\n        \n        self.SampleRate\
-      \ = SampleRate #input\n        self.Gain = Gain #input\n\n        self.c = 3e8\n\
-      \        self.SignalFreq = SignalFreq #input\n        self.d = 1/2*(self.c/self.SignalFreq)\
-      \ # d = (1/2) * (3e8/2.4e9)\n\n        self.sdr = uhd.usrp.MultiUSRP(\"type=b200\"\
-      )\n\n        self.Rx1_Phase_Cal = Rx1_Phase_Cal #phase off set\n        self.Rx2_Phase_Cal\
-      \ = Rx2_Phase_Cal #phase off set\n        self.Rx3_Phase_Cal = Rx3_Phase_Cal\
-      \ #phase off set\n        self.Rx4_Phase_Cal = Rx4_Phase_Cal #phase off set\n\
-      \n        self.SteerStep = 1\n        self.SteeringAngles = np.arange(-52,53,self.SteerStep)#\
-      \ array of [-52,-50,-48....48,50,52] with lenght 53\n        self.PhaseValues=\
-      \ (np.pi * np.sin((self.SteeringAngles*2*np.pi)/(360))*360)/(2*np.pi) # same\
-      \ size array, but now the necessary linear phaseshift as a decimal number\n\
-      \        #print(self.PhaseValues,\": \",len(self.PhaseValues))\n        for\
-      \ i in range(self.numDevices):\n            #HER ER DER 2ms\n            #print(\"\
-      For loop\", time.time())\n            self.vnx.fnLPS_SetWorkingFrequency(self.Devices[i],\
-      \ int(self.SignalFreq/ 100000))\n        \n        self.lookUp = {}\n      \
-      \  \n        for i in range(self.numDevices):\n            match self.ser_num[i]:\n\
-      \                case 24780:\n                    self.lookUp.update({0 : self.Devices[i]})\n\
-      \                case 24781:\n                    self.lookUp.update({1 : self.Devices[i]})\n\
-      \                case 24783:\n                    self.lookUp.update({2 : self.Devices[i]})\
+      \ = SampleRate #input\n        self.Gain = Gain #input\n        self.cc = cc\n\
+      \        self.c = 3e8\n        self.SignalFreq = SignalFreq #input\n       \
+      \ self.d = 1/2*(self.c/self.SignalFreq) # d = (1/2) * (3e8/2.4e9)\n\n      \
+      \  self.sdr = uhd.usrp.MultiUSRP(\"type=b200\")\n\n        self.Rx1_Phase_Cal\
+      \ = Rx1_Phase_Cal #phase off set\n        self.Rx2_Phase_Cal = Rx2_Phase_Cal\
+      \ #phase off set\n        self.Rx3_Phase_Cal = Rx3_Phase_Cal #phase off set\n\
+      \        self.Rx4_Phase_Cal = Rx4_Phase_Cal #phase off set\n\n        self.SteerStep\
+      \ = 1\n        self.SteeringAngles = np.arange(-52,53,self.SteerStep)# array\
+      \ of [-52,-50,-48....48,50,52] with lenght 53\n        self.PhaseValues= (np.pi\
+      \ * np.sin((self.SteeringAngles*2*np.pi)/(360))*360)/(2*np.pi) # same size array,\
+      \ but now the necessary linear phaseshift as a decimal number\n        #print(self.PhaseValues,\"\
+      : \",len(self.PhaseValues))\n        for i in range(self.numDevices):\n    \
+      \        #HER ER DER 2ms\n            #print(\"For loop\", time.time())\n  \
+      \          self.vnx.fnLPS_SetWorkingFrequency(self.Devices[i], int(self.SignalFreq/\
+      \ 100000))\n        \n        self.lookUp = {}\n        \n        for i in range(self.numDevices):\n\
+      \            match self.ser_num[i]:\n                case 24780:\n         \
+      \           self.lookUp.update({0 : self.Devices[i]})\n                case\
+      \ 24781:\n                    self.lookUp.update({1 : self.Devices[i]})\n  \
+      \              case 24783:\n                    self.lookUp.update({2 : self.Devices[i]})\
       \  \n                case 24784: \n                    self.lookUp.update({3\
       \ : self.Devices[i]})\n        \n        self.freqVal = np.linspace(-self.SampleRate/2+self.SampleRate/self.numSamples,self.SampleRate/2,self.numSamples)\
       \ \n        self.SliceValue=1\n        self.MVF = int(69/2) #Most Valuable Frequency,\
@@ -326,27 +348,29 @@ blocks:
       \        \n\n\n        print(\"Sweep time: \",(time.time()-tSweep)*1000, \"\
       ms\")  \n       \n        self.averageArray = np.append(self.averageArray[-self.averageNumber:],\
       \ max_angle)\n        \n        #time.sleep(2)\n        print(\"just sendt \"\
-      \ + str(round(np.mean(self.averageArray))))\n        self.SerialObj.write(bytes(str(round(max_angle)),\
-      \ \"utf-8\"))  # Transmit input to Arduino\n        \n        time.sleep(0.5)\n\
-      \n        #Write to file\n        self.angles.append(max_angle)\n        with\
-      \ open(self.doa_text_file,\"w\") as f:\n            f.write(\"__DOA__\\n\")\n\
-      \            for angles in self.angles:\n                f.write(f\"{angles},\
-      \ \")\n        # print(\"Post processing time: \",(time.time()-tSample)*1000,\
-      \ \"ms\")\n        \n\n        \n\n\n\n        output_items[0] = output_items[0][0:SteerStepNumber]\n\
-      \        output_items[1][:] = max_angle\n        output_items[3][:] = FreqOfInterest\n\
-      \        return len(output_items[0])"
+      \ + str(round(np.mean(self.averageArray)+self.cc))+\" cc \" + str(self.cc)+\"\
+      \ average \" + str(round(np.mean(self.averageArray))))\n        self.SerialObj.write(bytes(str(round(np.mean(self.averageArray)+self.cc)),\
+      \ \"utf-8\"))  # Transmit input to Arduino\n        #self.SerialObj.write(bytes(str(round(max_angle)),\
+      \ \"utf-8\"))  # Transmit input to Arduino\n        time.sleep(0.5)\n\n    \
+      \    #Write to file\n        self.angles.append(max_angle)\n        with open(self.doa_text_file,\"\
+      w\") as f:\n            f.write(\"__DOA__\\n\")\n            for angles in self.angles:\n\
+      \                f.write(f\"{angles}, \")\n        # print(\"Post processing\
+      \ time: \",(time.time()-tSample)*1000, \"ms\")\n        \n\n        \n\n\n\n\
+      \        output_items[0] = output_items[0][0:SteerStepNumber]\n        output_items[1][:]\
+      \ = max_angle\n        output_items[3][:] = FreqOfInterest\n        return len(output_items[0])"
     affinity: ''
     alias: ''
+    cc: cc
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
   states:
     _io_cache: ('Angle sweeper', 'blk', [('SampleRate', '1'), ('SignalFreq', '1'),
       ('Gain', '1'), ('Rx1_Phase_Cal', '1'), ('Rx2_Phase_Cal', '1'), ('Rx3_Phase_Cal',
-      '1'), ('Rx4_Phase_Cal', '1')], [], [('0', 'complex', 1), ('1', 'float', 1),
-      ('2', 'complex', 1), ('3', 'float', 1)], 'Embedded Python Block example - a
-      simple multiply const', ['Gain', 'Rx1_Phase_Cal', 'Rx2_Phase_Cal', 'Rx3_Phase_Cal',
-      'Rx4_Phase_Cal', 'SampleRate', 'SignalFreq'])
+      '1'), ('Rx4_Phase_Cal', '1'), ('cc', '1')], [], [('0', 'complex', 1), ('1',
+      'float', 1), ('2', 'complex', 1), ('3', 'float', 1)], 'Embedded Python Block
+      example - a simple multiply const', ['Gain', 'Rx1_Phase_Cal', 'Rx2_Phase_Cal',
+      'Rx3_Phase_Cal', 'Rx4_Phase_Cal', 'SampleRate', 'SignalFreq', 'cc'])
     bus_sink: false
     bus_source: false
     bus_structure: null
