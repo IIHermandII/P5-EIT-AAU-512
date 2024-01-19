@@ -336,61 +336,71 @@ blocks:
       \ #window function\n\n        SteerStepNumber = 0 \n        tSweep = time.time()\n\
       \        bartlett = np.zeros(self.numSamples,dtype=np.float32)\n        sp =\
       \ np.zeros(self.numSamples,dtype=np.float32)\n        \n\n        for PhDelta\
-      \ in self.PhaseValues: #evry tick in the steering angles\n            # RxPhase2\
-      \ = (np.round(PhDelta*1)+self.Rx2_Phase_Cal) % 360\n            # RxPhase3 =\
-      \ (np.round(PhDelta*2)+self.Rx3_Phase_Cal) % 360\n            # RxPhase4 = (np.round(PhDelta*3)+self.Rx4_Phase_Cal)\
-      \ % 360 #the phase shift + offset % 360\n            # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[1],\
-      \ int(RxPhase2))\n            # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[2],\
-      \ int(RxPhase3))\n            # self.vnx.fnLPS_SetPhaseAngle(self.lookUp[3],\
-      \ int(RxPhase4)) #phaseshifter, phase\n            #tPhases = time.time()\n\
-      \            #print(\"PHASESHIFTER USB time: \",(time.time()-tPhases)*1000,\
-      \ \"ms\")\n            \n\n            #print(\"Pre sample: \",time.time())\n\
-      \n            tSample = time.time()\n            #Get samples of data\n    \
-      \        data = self.sdr.recv_num_samps(\n            self.numSamples, # Number\
-      \ of samples\n            self.SignalFreq, # Frequency in Hz\n            self.SampleRate,\
-      \ # Sampling rate\n            [0], # Receive on channel 0\n            self.Gain,\
-      \ # dB of RX gain\n            )\n            \n            # print(\"SDR TOTAL\
-      \ Sample time: \",(time.time()-tSample)*1000, \"ms\")\n\n            y = data\
-      \ * win\n            \n            sp = np.absolute(np.fft.fft(y,self.N))\n\
-      \            #print(sp[0])\n            for iteration in range(self.SliceValue):\n\
-      \                sp[0][int(iteration)]=1e-9\n                if iteration >=\
-      \ 0:\n                    sp[0][int((self.numSamples-1)-iteration)]=1e-9\n \
-      \           \n            bartlett = np.add(bartlett,sp[0]) #sum each fft\n\n\
-      \            PeakValue1 = 20*np.log10(sp[0][self.MVF1])\n            PeakValue2\
-      \ = 20*np.log10(sp[0][self.MVF2])\n\n            if PeakValue1 > max_signal1:\n\
-      \                    max_signal1 = PeakValue1\n                    #theta =\
-      \ 0.9425*theta + 0.154 calibrated correction\n                    max_angle1\
-      \ = 0.9425*self.SteeringAngles[SteerStepNumber]+0.154\n\n            if PeakValue2\
-      \ > max_signal2:\n                    max_signal2 = PeakValue2\n           \
+      \ in self.PhaseValues: #evry tick in the steering angles\n            RxPhase2\
+      \ = (np.round(PhDelta*1)+self.Rx2_Phase_Cal) % 360\n            RxPhase3 = (np.round(PhDelta*2)+self.Rx3_Phase_Cal)\
+      \ % 360\n            RxPhase4 = (np.round(PhDelta*3)+self.Rx4_Phase_Cal) % 360\
+      \ #the phase shift + offset % 360\n            self.vnx.fnLPS_SetPhaseAngle(self.lookUp[1],\
+      \ int(RxPhase2))\n            self.vnx.fnLPS_SetPhaseAngle(self.lookUp[2], int(RxPhase3))\n\
+      \            self.vnx.fnLPS_SetPhaseAngle(self.lookUp[3], int(RxPhase4)) #phaseshifter,\
+      \ phase\n            #tPhases = time.time()\n            #print(\"PHASESHIFTER\
+      \ USB time: \",(time.time()-tPhases)*1000, \"ms\")\n            \n\n       \
+      \     #print(\"Pre sample: \",time.time())\n\n            tSample = time.time()\n\
+      \            #Get samples of data\n            data = self.sdr.recv_num_samps(\n\
+      \            self.numSamples, # Number of samples\n            self.SignalFreq,\
+      \ # Frequency in Hz\n            self.SampleRate, # Sampling rate\n        \
+      \    [0], # Receive on channel 0\n            self.Gain, # dB of RX gain\n \
+      \           )\n            \n            # print(\"SDR TOTAL Sample time: \"\
+      ,(time.time()-tSample)*1000, \"ms\")\n\n            y = data * win\n       \
+      \     \n            sp = np.absolute(np.fft.fft(y,self.N))\n            #print(sp[0])\n\
+      \            for iteration in range(self.SliceValue):\n                sp[0][int(iteration)]=1e-9\n\
+      \                if iteration >= 0:\n                    sp[0][int((self.numSamples-1)-iteration)]=1e-9\n\
+      \            \n            sp[0]=np.fft.fftshift(sp[0])\n\n            bartlett\
+      \ = np.add(bartlett,sp[0]) #sum each fft\n\n            PeakValue1 = 20*np.log10(sp[0][self.MVF1])\n\
+      \            PeakValue2 = 20*np.log10(sp[0][self.MVF2])\n\n            if PeakValue1\
+      \ > max_signal1:\n                    max_signal1 = PeakValue1\n           \
       \         #theta = 0.9425*theta + 0.154 calibrated correction\n            \
-      \        max_angle2 = 0.9425*self.SteeringAngles[SteerStepNumber]+0.154\n\n\
-      \            if self.SignalNumbers<=1:\n                PeakValue1=1e-9\n  \
+      \        max_angle1 = 0.9425*self.SteeringAngles[SteerStepNumber]+0.154\n\n\
+      \            if PeakValue2 > max_signal2:\n                    max_signal2 =\
+      \ PeakValue2\n                    #theta = 0.9425*theta + 0.154 calibrated correction\n\
+      \                    max_angle2 = 0.9425*self.SteeringAngles[SteerStepNumber]+0.154\n\
+      \n            if self.SignalNumbers<1:\n                PeakValue1=1e-9\n  \
       \              PeakValue2=1e-9\n            elif self.SignalNumbers == 1:\n\
       \                PeakValue2=1e-9\n            \n\n            output_items[0][SteerStepNumber]\
       \ = ((1)*self.SteeringAngles[SteerStepNumber] + (1j * PeakValue1))\n       \
       \     output_items[4][SteerStepNumber] = ((1)*self.SteeringAngles[SteerStepNumber]\
       \ + (1j * PeakValue2))\n            SteerStepNumber = SteerStepNumber + 1\n\n\
       \                \n\n            #end of phaseshift  for-loop\n\n        \n\n\
-      \        self.MVF1 = np.argmax(bartlett) #finds the index of max value\n\n \
-      \       # Find the index of the next biggest value\n        next_biggest_index\
-      \ = 0 # Default value if not found\n\n        for i, x in enumerate(bartlett):\n\
-      \            if x >= bartlett[self.MVF1]:\n                continue  # Skip\
-      \ values greater than or equal to the maximum\n            if self.MVF2 == 0\
-      \ or x > bartlett[self.MVF2]:\n                self.MVF2 = i\n\n        #Threshold\
-      \ analysis of the signals present\n        if 20*np.log10(bartlett[self.MVF1])\
-      \ >= self.Bartlett_Threshold:\n            if 20*np.log10(bartlett[self.MVF2])\
-      \ >= self.Bartlett_Threshold:\n                self.SignalNumbers = 2\n    \
-      \        else:\n                self.SignalNumbers = 1\n        else:\n    \
-      \        self.SignalNumbers = 0\n\n        \n\n\n        bartlett = np.fft.fftshift(bartlett)\n\
-      \        FreqOfInterest1=round((self.SignalFreq + self.freqVal[self.MVF1])/1e6)\n\
+      \        #self.MVF1 = np.argmax(bartlett) #finds the index of max value\n  \
+      \      # Find the index of the next biggest value\n        # next_biggest_index\
+      \ = 0 # Default value if not found\n\n        # for i, x in enumerate(bartlett):\n\
+      \        #     if x >= bartlett[self.MVF1]:\n        #         continue  # Skip\
+      \ values greater than or equal to the maximum\n        #     if self.MVF2 ==\
+      \ 0 or x > bartlett[self.MVF2]:\n        #         self.MVF2 = i\n\n       \
+      \ BartlettAverage = np.mean(bartlett)\n        #print(\"Average is \" + str(BartlettAverage))\n\
+      \        afterpeak = 0\n        self.MVF1=0\n        self.MVF2=0\n        OverAverage=0\n\
+      \        #bartlett = np.fft.fftshift(bartlett)\n        for i, x in enumerate(bartlett):\n\
+      \            if x >= BartlettAverage:\n                OverAverage=1\n     \
+      \       \n            if OverAverage>0: #it has been over average\n        \
+      \        if afterpeak > 0:\n                    if self.MVF2 == 0 or x > bartlett[self.MVF2]:\n\
+      \                        self.MVF2 = i\n                        #print(\"hooo\
+      \ \" + str(i)+\"  \"+ str(x))\n                elif self.MVF1 == 0 or x > bartlett[self.MVF1]:\n\
+      \                    self.MVF1 = i\n                    #print(\"heiii \" +\
+      \ str(i) +\"  \"+ str(x))\n                elif x < BartlettAverage:\n     \
+      \               afterpeak=1\n                    #print(\"afterpeak happens\
+      \ at \" + str(i)+\"  \"+ str(x))\n\n        #Threshold analysis of the signals\
+      \ present\n        if 20*np.log10(bartlett[self.MVF1]) >= self.Bartlett_Threshold:\n\
+      \            if 20*np.log10(bartlett[self.MVF2]) >= self.Bartlett_Threshold:\n\
+      \                self.SignalNumbers = 2\n            else:\n               \
+      \ self.SignalNumbers = 1\n        else:\n            self.SignalNumbers = 0\n\
+      \n        \n\n\n        \n        FreqOfInterest1=round((self.SignalFreq + self.freqVal[self.MVF1])/1e6)\n\
       \        FreqOfInterest2=round((self.SignalFreq + self.freqVal[self.MVF2])/1e6)\n\
       \n        output_items[2][0:self.numSamples] = self.freqVal+1j*20*np.log10(bartlett)\n\
       \        output_items[2]=output_items[2][0:self.numSamples]\n        #print(output_items[2])\n\
       \        \n\n\n        print(\"Sweep time: \",(time.time()-tSweep)*1000, \"\
       ms\")  \n       \n        self.averageArray = np.append(self.averageArray[-self.averageNumber:],\
-      \ max_angle1)\n        \n        time.sleep(2)\n        print(\"just sendt \"\
-      \ + str(round(np.mean(self.averageArray))))\n        #self.SerialObj.write(bytes(str(round(max_angle1)),\
-      \ \"utf-8\"))  # Transmit input to Arduino\n        \n        time.sleep(2)\n\
+      \ max_angle1)\n        \n        #time.sleep(2)\n        print(\"just sendt\
+      \ \" + str(round(np.mean(self.averageArray))))\n        #self.SerialObj.write(bytes(str(round(max_angle1)),\
+      \ \"utf-8\"))  # Transmit input to Arduino\n        \n        #time.sleep(2)\n\
       \n        #Write to file\n        self.angles.append(max_angle1)\n        with\
       \ open(self.doa_text_file,\"w\") as f:\n            f.write(\"__DOA__\\n\")\n\
       \            for angles in self.angles:\n                f.write(f\"{angles},\
